@@ -25,7 +25,8 @@
 namespace fastonosql {
 namespace gui {
 
-StatisticSender::StatisticSender(uint32_t exec_count, QObject* parent) : QObject(parent), exec_count_(exec_count) {}
+StatisticSender::StatisticSender(const std::string& login, uint32_t exec_count, QObject* parent)
+    : QObject(parent), exec_count_(exec_count), login_(login) {}
 
 void StatisticSender::routine() {
 #if defined(FASTONOSQL)
@@ -42,13 +43,11 @@ void StatisticSender::routine() {
   }
 
   std::string request;
-  common::Error request_gen_err = server::GenStatisticRequest(exec_count_, &request);
+  common::Error request_gen_err = server::GenStatisticRequest(login_, exec_count_, &request);
   if (request_gen_err) {
     emit statisticSended(false);
     err = client.Close();
-    if (err) {
-      DNOTREACHED();
-    }
+    DCHECK(!err) << "Close client error: " << err->GetDescription();
     return;
   }
 
@@ -57,9 +56,7 @@ void StatisticSender::routine() {
   if (err) {
     emit statisticSended(false);
     err = client.Close();
-    if (err) {
-      DNOTREACHED();
-    }
+    DCHECK(!err) << "Close client error: " << err->GetDescription();
     return;
   }
 
@@ -69,24 +66,12 @@ void StatisticSender::routine() {
   if (err) {
     emit statisticSended(false);
     err = client.Close();
-    if (err) {
-      DNOTREACHED();
-    }
+    DCHECK(!err) << "Close client error: " << err->GetDescription();
     return;
   }
 
-  bool is_sent;
-  common::Error parse_error = server::ParseSendStatisticResponce(stat_reply, &is_sent);
-  if (parse_error) {
-    emit statisticSended(false);
-    err = client.Close();
-    if (err) {
-      DNOTREACHED();
-    }
-    return;
-  }
-
-  emit statisticSended(is_sent);
+  server::JsonRPCError jerror = server::ParseSendStatisticResponce(stat_reply);
+  emit statisticSended(!jerror);
   err = client.Close();
   DCHECK(!err) << "Close client error: " << err->GetDescription();
 }

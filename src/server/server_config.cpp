@@ -17,8 +17,6 @@
 #define JSONRPC_ERROR_MESSAGE_FIELD "message"
 #define JSONRPC_RESULT_FIELD "result"
 
-#define SUCCESS_RESULT "OK"
-
 // methods
 #define GET_VERSION_METHOD "version"
 #define SEND_STATISTIC_METHOD "statistic"
@@ -52,15 +50,19 @@ json_object* GenerateJsonRpcCommand(const char* method, json_object* param = NUL
   return command_json;
 }
 
-common::Error GetJsonRpcResult(json_object* rpc, std::string* result) {
-  if (!rpc || !result) {
-    return common::make_error_inval();
-  }
+}  // namespace
+
+namespace fastonosql {
+namespace server {
+
+namespace {
+JsonRPCError GetJsonRpcResult(json_object* rpc, std::string* result) {
+  CHECK(rpc && result);
 
   json_object* jrpc = NULL;
   json_bool jrpc_exists = json_object_object_get_ex(rpc, JSONRPC_FIELD, &jrpc);
   if (!jrpc_exists) {
-    return common::make_error_inval();
+    return make_jsonrpc_error(JSON_RPC_INTERNAL_ERROR);
   }
 
   json_object* jerror = NULL;
@@ -71,34 +73,27 @@ common::Error GetJsonRpcResult(json_object* rpc, std::string* result) {
 
     json_object* jerror_message = NULL;
     json_bool jerror_message_exists = json_object_object_get_ex(jerror, JSONRPC_ERROR_MESSAGE_FIELD, &jerror_message);
-    std::string buff;
     if (jerror_message_exists && jerror_code_exists) {
       std::string error_str = json_object_get_string(jerror_message);
-      int err_code = json_object_get_int(jerror_code);
-      buff = common::MemSPrintf("json rpc error code: %d, message: %s", err_code, error_str);
-    } else {
-      std::string error_str = json_object_get_string(jerror);
-      buff = common::MemSPrintf("json rpc error: %s", error_str);
+      JsonRPCErrorCode err_code = static_cast<JsonRPCErrorCode>(json_object_get_int(jerror_code));
+      return make_jsonrpc_error(err_code, error_str);
     }
 
-    return common::make_error(buff);
+    return make_jsonrpc_message_error(json_object_get_string(jerror));
   }
 
   json_object* jresult = NULL;
   json_bool jresult_exists = json_object_object_get_ex(rpc, JSONRPC_RESULT_FIELD, &jresult);
   if (!jresult_exists) {
-    return common::make_error_inval();
+    return make_jsonrpc_error_inval();
   }
 
   const char* result_str = json_object_get_string(jresult);
   *result = result_str;
-  return common::Error();
+  return JsonRPCError();
 }
 
 }  // namespace
-
-namespace fastonosql {
-namespace server {
 
 #ifndef IS_PUBLIC_BUILD
 common::Error GenSubscriptionStateRequest(const std::string& login, const std::string& password, std::string* request) {
@@ -117,20 +112,19 @@ common::Error GenSubscriptionStateRequest(const std::string& login, const std::s
   return common::Error();
 }
 
-common::Error ParseSubscriptionStateResponce(const std::string& data, bool* is_ok) {
-  if (data.empty() || !is_ok) {
-    return common::make_error_inval();
+JsonRPCError ParseSubscriptionStateResponce(const std::string& data) {
+  if (data.empty()) {
+    return make_jsonrpc_error_inval();
   }
 
   const char* data_ptr = data.c_str();
   json_object* jdata = json_tokener_parse(data_ptr);
   if (!jdata) {
-    return common::make_error_inval();
+    return make_jsonrpc_error_inval();
   }
 
   std::string ok_str;
-  common::Error err = GetJsonRpcResult(jdata, &ok_str);
-  *is_ok = ok_str == SUCCESS_RESULT;
+  JsonRPCError err = GetJsonRpcResult(jdata, &ok_str);
   json_object_put(jdata);
   return err;
 }
@@ -148,24 +142,24 @@ common::Error GenVersionRequest(std::string* request) {
   return common::Error();
 }
 
-common::Error ParseVersionResponce(const std::string& data, std::string* version_str) {
+JsonRPCError ParseVersionResponce(const std::string& data, std::string* version_str) {
   if (data.empty() || !version_str) {
-    return common::make_error_inval();
+    return make_jsonrpc_error_inval();
   }
 
   const char* data_ptr = data.c_str();
   json_object* jdata = json_tokener_parse(data_ptr);
   if (!jdata) {
-    return common::make_error_inval();
+    return make_jsonrpc_error_inval();
   }
 
-  common::Error err = GetJsonRpcResult(jdata, version_str);
+  JsonRPCError err = GetJsonRpcResult(jdata, version_str);
   json_object_put(jdata);
   return err;
 }
 
-common::Error GenStatisticRequest(uint32_t exec_count, std::string* request) {
-  if (!request) {
+common::Error GenStatisticRequest(const std::string& login, uint32_t exec_count, std::string* request) {
+  if (!request || login.empty()) {
     return common::make_error_inval();
   }
 
@@ -173,9 +167,12 @@ common::Error GenStatisticRequest(uint32_t exec_count, std::string* request) {
   common::system_info::SystemInfo inf = common::system_info::currentSystemInfo();
 
   json_object* os_json = json_object_new_object();
-  json_object_object_add(os_json, STATISTIC_OS_NAME_FIELD, json_object_new_string(inf.GetName().c_str()));
-  json_object_object_add(os_json, STATISTIC_OS_VERSION_FIELD, json_object_new_string(inf.GetVersion().c_str()));
-  json_object_object_add(os_json, STATISTIC_OS_ARCH_FIELD, json_object_new_string(inf.GetArch().c_str()));
+  const std::string os_name = inf.GetName();
+  json_object_object_add(os_json, STATISTIC_OS_NAME_FIELD, json_object_new_string(os_name.c_str()));
+  const std::string os_version = inf.GetVersion();
+  json_object_object_add(os_json, STATISTIC_OS_VERSION_FIELD, json_object_new_string(os_version.c_str()));
+  const std::string os_arch = inf.GetArch();
+  json_object_object_add(os_json, STATISTIC_OS_ARCH_FIELD, json_object_new_string(os_arch.c_str()));
   json_object_object_add(stats_json, STATISTIC_OS_FIELD, os_json);
 
   json_object* project_json = json_object_new_object();
@@ -183,7 +180,7 @@ common::Error GenStatisticRequest(uint32_t exec_count, std::string* request) {
   json_object_object_add(project_json, STATISTIC_PROJECT_VERSION_FIELD, json_object_new_string(PROJECT_VERSION));
   json_object_object_add(project_json, STATISTIC_PROJECT_ARCH_FIELD, json_object_new_string(PROJECT_ARCH));
 #ifndef IS_PUBLIC_BUILD
-  json_object_object_add(project_json, STATISTIC_OWNER_FIELD, json_object_new_string(USER_SPECIFIC_LOGIN));
+  json_object_object_add(project_json, STATISTIC_OWNER_FIELD, json_object_new_string(login.c_str()));
 #endif
   json_object_object_add(project_json, STATISTIC_PROJECT_EXEC_COUNT_FIELD,
                          json_object_new_int64(static_cast<int64_t>(exec_count)));
@@ -196,20 +193,19 @@ common::Error GenStatisticRequest(uint32_t exec_count, std::string* request) {
   return common::Error();
 }
 
-common::Error ParseSendStatisticResponce(const std::string& data, bool* is_sent) {
-  if (data.empty() || !is_sent) {
-    return common::make_error_inval();
+JsonRPCError ParseSendStatisticResponce(const std::string& data) {
+  if (data.empty()) {
+    return make_jsonrpc_error_inval();
   }
 
   const char* data_ptr = data.c_str();
   json_object* jdata = json_tokener_parse(data_ptr);
   if (!jdata) {
-    return common::make_error_inval();
+    return make_jsonrpc_error_inval();
   }
 
   std::string ok_str;
-  common::Error err = GetJsonRpcResult(jdata, &ok_str);
-  *is_sent = ok_str == SUCCESS_RESULT;
+  JsonRPCError err = GetJsonRpcResult(jdata, &ok_str);
   json_object_put(jdata);
   return err;
 }
