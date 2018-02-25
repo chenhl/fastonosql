@@ -345,7 +345,13 @@ void MainWindow::checkUpdate() {
 void MainWindow::sendStatistic() {
   QThread* th = new QThread;
   uint32_t exec_count = proxy::SettingsManager::GetInstance()->GetExecCount();
-  StatisticSender* sender = new StatisticSender(USER_SPECIFIC_LOGIN, exec_count);
+
+#ifndef IS_PUBLIC_BUILD
+  const std::string login = USER_SPECIFIC_LOGIN;
+#else
+  const std::string login = "anon@fastogt.com";
+#endif
+  StatisticSender* sender = new StatisticSender(login, exec_count);
   sender->moveToThread(th);
   VERIFY(connect(th, &QThread::started, sender, &StatisticSender::routine));
   VERIFY(connect(sender, &StatisticSender::statisticSended, this, &MainWindow::statitsticSent));
