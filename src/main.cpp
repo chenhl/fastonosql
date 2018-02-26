@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  fastonosql::server::JsonRPCError jerror = fastonosql::server::ParseSubscriptionStateResponce(subscribe_reply);
+  auto jerror = fastonosql::server::ParseSubscriptionStateResponce(subscribe_reply);
   if (jerror) {
     err = client.Close();
     DCHECK(!err) << "Close client error: " << err->GetDescription();
