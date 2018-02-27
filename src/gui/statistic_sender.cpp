@@ -70,7 +70,8 @@ void StatisticSender::routine() {
     return;
   }
 
-  auto jerror = server::ParseSendStatisticResponce(stat_reply);
+  common::protocols::json_rpc::JsonRPCResult result;
+  common::Error jerror = server::ParseSendStatisticResponce(stat_reply, &result);
   emit statisticSended(!jerror);
   err = client.Close();
   DCHECK(!err) << "Close client error: " << err->GetDescription();

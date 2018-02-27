@@ -76,9 +76,9 @@ void UpdateChecker::routine() {
     return;
   }
 
-  std::string version_str;
-  auto parse_error = server::ParseVersionResponce(version_reply, &version_str);
-  if (parse_error) {
+  common::protocols::json_rpc::JsonRPCResult version_result;
+  common::Error parse_error = server::ParseVersionResponce(version_reply, &version_result);
+  if (parse_error || version_result.IsError()) {
     emit versionAvailibled(false, QString());
     err = client.Close();
     if (err) {
@@ -88,7 +88,7 @@ void UpdateChecker::routine() {
   }
 
   QString qversion_str;
-  common::ConvertFromString(version_str, &qversion_str);
+  common::ConvertFromString(version_result.message->result, &qversion_str);
 
   emit versionAvailibled(true, qversion_str);
   err = client.Close();

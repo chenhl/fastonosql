@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
 #endif
   common::ErrnoError err = client.Connect();
   if (err) {
-    QMessageBox::critical(nullptr, fastonosql::translations::trPassword,
+    QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
                           QObject::tr("Sorry can't connect to server, for checking your passowrd."));
     return EXIT_FAILURE;
   }
@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
   common::Error request_err =
       fastonosql::server::GenSubscriptionStateRequest(USER_SPECIFIC_LOGIN, hexed_password, &request);
   if (request_err) {
-    QMessageBox::critical(nullptr, fastonosql::translations::trPassword,
+    QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
                           QObject::tr("Sorry can't generate password request, for checking your passowrd."));
     return EXIT_FAILURE;
   }
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     if (err) {
       DNOTREACHED();
     }
-    QMessageBox::critical(nullptr, fastonosql::translations::trPassword,
+    QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
                           QObject::tr("Sorry can't write request, for checking your passowrd."));
     return EXIT_FAILURE;
   }
@@ -145,19 +145,19 @@ int main(int argc, char* argv[]) {
     if (err) {
       DNOTREACHED();
     }
-    QMessageBox::critical(nullptr, fastonosql::translations::trPassword,
+    QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
                           QObject::tr("Sorry can't get responce, for checking your passowrd."));
     return EXIT_FAILURE;
   }
 
-  auto jerror = fastonosql::server::ParseSubscriptionStateResponce(subscribe_reply);
-  if (jerror) {
+  common::protocols::json_rpc::JsonRPCResult result;
+  common::Error jerror = fastonosql::server::ParseSubscriptionStateResponce(subscribe_reply, &result);
+  if (jerror || result.IsError()) {
     err = client.Close();
     DCHECK(!err) << "Close client error: " << err->GetDescription();
-    std::string message = jerror->GetMessage();
     QString qmessage;
-    common::ConvertFromString(message, &qmessage);
-    QMessageBox::critical(nullptr, fastonosql::translations::trPassword, QObject::tr("%1, bye.").arg(qmessage));
+    common::ConvertFromString(result.error->message, &qmessage);
+    QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication, QObject::tr("%1, bye.").arg(qmessage));
     return EXIT_FAILURE;
   }
 #endif

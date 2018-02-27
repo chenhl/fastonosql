@@ -51,13 +51,13 @@ common::Error GenSubscriptionStateRequest(const std::string& login, const std::s
   return common::Error();
 }
 
-common::protocols::json_rpc::JsonRPCError ParseSubscriptionStateResponce(const std::string& data) {
+common::Error ParseSubscriptionStateResponce(const std::string& data,
+                                             common::protocols::json_rpc::JsonRPCResult* result) {
   if (data.empty()) {
-    return common::protocols::json_rpc::make_jsonrpc_error_inval();
+    return common::make_error_inval();
   }
 
-  std::string ok_str;
-  return common::protocols::json_rpc::ParseJsonRPC(data, &ok_str);
+  return common::protocols::json_rpc::ParseJsonRPC(data, result);
 }
 #endif
 
@@ -78,12 +78,12 @@ common::Error GenVersionRequest(std::string* request) {
   return common::Error();
 }
 
-common::protocols::json_rpc::JsonRPCError ParseVersionResponce(const std::string& data, std::string* version_str) {
-  if (data.empty() || !version_str) {
-    return common::protocols::json_rpc::make_jsonrpc_error_inval();
+common::Error ParseVersionResponce(const std::string& data, common::protocols::json_rpc::JsonRPCResult* result) {
+  if (data.empty() || !result) {
+    return common::make_error_inval();
   }
 
-  return common::protocols::json_rpc::ParseJsonRPC(data, version_str);
+  return common::protocols::json_rpc::ParseJsonRPC(data, result);
 }
 
 common::Error GenStatisticRequest(const std::string& login, uint32_t exec_count, std::string* request) {
@@ -127,13 +127,12 @@ common::Error GenStatisticRequest(const std::string& login, uint32_t exec_count,
   return common::Error();
 }
 
-common::protocols::json_rpc::JsonRPCError ParseSendStatisticResponce(const std::string& data) {
+common::Error ParseSendStatisticResponce(const std::string& data, common::protocols::json_rpc::JsonRPCResult* result) {
   if (data.empty()) {
-    return common::protocols::json_rpc::make_jsonrpc_error_inval();
+    return common::make_error_inval();
   }
 
-  std::string ok_str;
-  return common::protocols::json_rpc::ParseJsonRPC(data, &ok_str);
+  return common::protocols::json_rpc::ParseJsonRPC(data, result);
 }
 
 }  // namespace server

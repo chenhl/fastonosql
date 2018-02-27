@@ -80,6 +80,7 @@ class BuildRequest(object):
             os.chdir('build_cmake_release')
             common_cmake_line = list(cmake_line)
             common_cmake_line.append('-DQT_ENABLED=ON')
+            common_cmake_line.append('-DJSON_ENABLED=ON')
             common_cmake_line.append('-DSNAPPY_USE_STATIC=ON')
             cmake_policy = run_command.CmakePolicy(print_message)
             make_policy = run_command.CommonPolicy(print_message)
