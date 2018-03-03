@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  common::protocols::json_rpc::JsonRPCResult result;
+  common::protocols::json_rpc::JsonRPCResponce result;
   common::Error jerror = fastonosql::server::ParseSubscriptionStateResponce(subscribe_reply, &result);
   if (jerror || result.IsError()) {
     err = client.Close();

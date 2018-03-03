@@ -40,7 +40,11 @@ common::Error GenSubscriptionStateRequest(const std::string& login, const std::s
   json_object_object_add(cred_json, SUBSCRIBED_PASSWORD_FIELD, json_object_new_string(password.c_str()));
 
   json_object* is_subscribed_json = NULL;
-  common::Error err = common::protocols::json_rpc::MakeJsonRPC(IS_SUBSCRIBED_METHOD, cred_json, &is_subscribed_json);
+  common::protocols::json_rpc::JsonRPCRequest req;
+  req.id = common::protocols::json_rpc::null_json_rpc_id;
+  req.method = IS_SUBSCRIBED_METHOD;
+  req.params = std::string(json_object_get_string(cred_json));
+  common::Error err = common::protocols::json_rpc::MakeJsonRPCRequest(req, &is_subscribed_json);
   if (err) {
     json_object_put(cred_json);
     return err;
@@ -52,12 +56,12 @@ common::Error GenSubscriptionStateRequest(const std::string& login, const std::s
 }
 
 common::Error ParseSubscriptionStateResponce(const std::string& data,
-                                             common::protocols::json_rpc::JsonRPCResult* result) {
+                                             common::protocols::json_rpc::JsonRPCResponce* result) {
   if (data.empty()) {
     return common::make_error_inval();
   }
 
-  return common::protocols::json_rpc::ParseJsonRPC(data, result);
+  return common::protocols::json_rpc::ParseJsonRPCResponce(data, result);
 }
 #endif
 
@@ -67,7 +71,10 @@ common::Error GenVersionRequest(std::string* request) {
   }
 
   json_object* command_json = NULL;
-  common::Error err = common::protocols::json_rpc::MakeJsonRPC(GET_VERSION_METHOD, NULL, &command_json);
+  common::protocols::json_rpc::JsonRPCRequest req;
+  req.id = common::protocols::json_rpc::null_json_rpc_id;
+  req.method = GET_VERSION_METHOD;
+  common::Error err = common::protocols::json_rpc::MakeJsonRPCRequest(req, &command_json);
   if (err) {
     return err;
   }
@@ -78,12 +85,12 @@ common::Error GenVersionRequest(std::string* request) {
   return common::Error();
 }
 
-common::Error ParseVersionResponce(const std::string& data, common::protocols::json_rpc::JsonRPCResult* result) {
+common::Error ParseVersionResponce(const std::string& data, common::protocols::json_rpc::JsonRPCResponce* result) {
   if (data.empty() || !result) {
     return common::make_error_inval();
   }
 
-  return common::protocols::json_rpc::ParseJsonRPC(data, result);
+  return common::protocols::json_rpc::ParseJsonRPCResponce(data, result);
 }
 
 common::Error GenStatisticRequest(const std::string& login, uint32_t exec_count, std::string* request) {
@@ -115,7 +122,11 @@ common::Error GenStatisticRequest(const std::string& login, uint32_t exec_count,
   json_object_object_add(stats_json, STATISTIC_PROJECT_FIELD, project_json);
 
   json_object* command_json = NULL;
-  common::Error err = common::protocols::json_rpc::MakeJsonRPC(SEND_STATISTIC_METHOD, stats_json, &command_json);
+  common::protocols::json_rpc::JsonRPCRequest req;
+  req.id = common::protocols::json_rpc::null_json_rpc_id;
+  req.method = SEND_STATISTIC_METHOD;
+  req.params = std::string(json_object_get_string(stats_json));
+  common::Error err = common::protocols::json_rpc::MakeJsonRPCRequest(req, &command_json);
   if (err) {
     json_object_put(stats_json);
     return err;
@@ -127,12 +138,13 @@ common::Error GenStatisticRequest(const std::string& login, uint32_t exec_count,
   return common::Error();
 }
 
-common::Error ParseSendStatisticResponce(const std::string& data, common::protocols::json_rpc::JsonRPCResult* result) {
+common::Error ParseSendStatisticResponce(const std::string& data,
+                                         common::protocols::json_rpc::JsonRPCResponce* result) {
   if (data.empty()) {
     return common::make_error_inval();
   }
 
-  return common::protocols::json_rpc::ParseJsonRPC(data, result);
+  return common::protocols::json_rpc::ParseJsonRPCResponce(data, result);
 }
 
 }  // namespace server

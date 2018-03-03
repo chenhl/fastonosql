@@ -70,7 +70,7 @@ void StatisticSender::routine() {
     return;
   }
 
-  common::protocols::json_rpc::JsonRPCResult result;
+  common::protocols::json_rpc::JsonRPCResponce result;
   common::Error jerror = server::ParseSendStatisticResponce(stat_reply, &result);
   emit statisticSended(!jerror);
   err = client.Close();

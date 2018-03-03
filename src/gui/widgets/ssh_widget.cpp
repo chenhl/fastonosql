@@ -77,9 +77,9 @@ SSHWidget::SSHWidget(QWidget* parent) : QWidget(parent) {
   ssh_auth_method_label_ = new QLabel;
 
   security_ = new QComboBox;
+  security_->addItem(translations::trPublicPrivateKey, core::SSHInfo::PUBLICKEY);
   security_->addItem(translations::trAskPassword, core::SSHInfo::ASK_PASSWORD);
   security_->addItem(translations::trPassword, core::SSHInfo::PASSWORD);
-  security_->addItem(translations::trPublicPrivateKey, core::SSHInfo::PUBLICKEY);
 
   typedef void (QComboBox::*ind)(int index);
   VERIFY(connect(security_, static_cast<ind>(&QComboBox::currentIndexChanged), this, &SSHWidget::securityChange));

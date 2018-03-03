@@ -76,7 +76,7 @@ void UpdateChecker::routine() {
     return;
   }
 
-  common::protocols::json_rpc::JsonRPCResult version_result;
+  common::protocols::json_rpc::JsonRPCResponce version_result;
   common::Error parse_error = server::ParseVersionResponce(version_reply, &version_result);
   if (parse_error || version_result.IsError()) {
     emit versionAvailibled(false, QString());

@@ -42,7 +42,7 @@ inline bool operator!=(const PublicPrivate& r, const PublicPrivate& l) {
 }
 
 struct SSHInfo {
-  enum SupportedAuthenticationMethods { UNKNOWN = 0, ASK_PASSWORD = 1, PASSWORD = 2, PUBLICKEY = 3 };
+  enum SupportedAuthenticationMethods { UNKNOWN = 0, PUBLICKEY = 1, ASK_PASSWORD = 2, PASSWORD = 3 };
 
   SSHInfo();
   SSHInfo(const common::net::HostAndPort& host,
