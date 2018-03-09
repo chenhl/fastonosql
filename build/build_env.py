@@ -10,7 +10,7 @@ from pybuild_utils.base import utils
 OPENSSL_SRC_ROOT = "https://www.openssl.org/source/"
 ARCH_OPENSSL_COMP = "gz"
 ARCH_OPENSSL_EXT = "tar." + ARCH_OPENSSL_COMP
-#ROCKSDB_BRANCH = 'v5.10.2'
+# ROCKSDB_BRANCH = 'v5.10.2'
 g_script_path = os.path.realpath(sys.argv[0])
 
 
@@ -94,7 +94,7 @@ class BuildRequest(object):
     def build_openssl(self, prefix_path):
         abs_dir_path = self.build_dir_path_
         try:
-            openssl_default_version = '1.0.2l'
+            openssl_default_version = '1.1.0g'
             compiler_flags = utils.CompileInfo([], ['no-shared'])
             url = '{0}openssl-{1}.{2}'.format(OPENSSL_SRC_ROOT, openssl_default_version, ARCH_OPENSSL_EXT)
             utils.build_from_sources(url, compiler_flags, g_script_path, prefix_path, './config')
@@ -114,7 +114,6 @@ class BuildRequest(object):
             libssh2_cmake_line.append('-DBUILD_SHARED_LIBS=OFF')
             libssh2_cmake_line.append('-DCRYPTO_BACKEND=OpenSSL')
             libssh2_cmake_line.append('-DENABLE_ZLIB_COMPRESSION=ON')
-            libssh2_cmake_line.append('-DZLIB_USE_STATIC=ON')
             libssh2_cmake_line.append('-DOPENSSL_USE_STATIC_LIBS=ON')
             libssh2_cmake_line.append('-DBUILD_EXAMPLES=OFF')
             libssh2_cmake_line.append('-DBUILD_TESTING=OFF')
