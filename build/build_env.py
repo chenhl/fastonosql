@@ -258,6 +258,7 @@ class BuildRequest(object):
             common_cmake_line.append('-DROCKSDB_INSTALL_ON_WINDOWS=ON')
             common_cmake_line.append('-DWITH_TOOLS=OFF')
             common_cmake_line.append('-DWITH_GFLAGS=OFF')
+            common_cmake_line.append('-DBUILD_SHARED_LIBS=OFF')
             cmake_policy = run_command.CmakePolicy(print_message)
             make_policy = run_command.CommonPolicy(print_message)
             run_command.run_command_cb(common_cmake_line, cmake_policy)
