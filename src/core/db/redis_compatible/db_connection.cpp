@@ -38,13 +38,6 @@ extern "C" {
   STRINGIZE(HIREDIS_MAJOR) \
   "." STRINGIZE(HIREDIS_MINOR) "." STRINGIZE(HIREDIS_PATCH)
 
-namespace {
-const struct RedisInit {
-  RedisInit() { libssh2_init(0); }
-  ~RedisInit() { libssh2_exit(); }
-} rInit;
-}  // namespace
-
 namespace fastonosql {
 namespace core {
 namespace redis_compatible {
