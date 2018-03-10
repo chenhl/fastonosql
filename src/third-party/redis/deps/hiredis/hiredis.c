@@ -44,12 +44,6 @@
 #include "sds.h"
 
 #ifdef FASTO
-static void init_openssl_library(void) {
-  SSL_library_init();
-  SSL_load_error_strings();
-  /* ERR_load_crypto_strings(); */
-  OPENSSL_config(NULL);
-}
 #ifdef OS_WIN
 #define F_EINTR 0
 #else
@@ -772,8 +766,6 @@ redisContext *redisConnect(const char *ip, int port, const char *ssh_address, in
       __redisSetError(c, REDIS_ERR_OTHER, "Failed to connect (ssl_address).");
       return c;
     }
-
-    init_openssl_library();
 
     const SSL_METHOD *method = SSLv23_client_method();
     if ((ssl_ctx = SSL_CTX_new(method)) == NULL) {
