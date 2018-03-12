@@ -105,6 +105,8 @@ extern const QString trAuthentication;
 extern const QString trAskPassword;
 extern const QString trTrial;
 extern const QString trLogin;
+extern const QString trFirstName;
+extern const QString trLastName;
 extern const QString trHide;
 extern const QString trShow;
 extern const QString trJson;

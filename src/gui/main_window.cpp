@@ -347,7 +347,7 @@ void MainWindow::sendStatistic() {
   uint32_t exec_count = proxy::SettingsManager::GetInstance()->GetExecCount();
 
 #ifndef IS_PUBLIC_BUILD
-  const std::string login = USER_SPECIFIC_LOGIN;
+  const std::string login = USER_LOGIN;
 #else
   const std::string login = "anon@fastogt.com";
 #endif

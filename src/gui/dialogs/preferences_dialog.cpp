@@ -64,13 +64,36 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent) {
                                                                      // button (?)
 #ifndef IS_PUBLIC_BUILD
   profile_box_ = new QGroupBox;
-  QHBoxLayout* profile_layout = new QHBoxLayout;
+  QVBoxLayout* profile_layout = new QVBoxLayout;
+  QHBoxLayout* first_last_name_layout = new QHBoxLayout;
+  QHBoxLayout* first_name_layout = new QHBoxLayout;
+  first_name_label_ = new QLabel;
+  first_name_text_ = new QLineEdit;
+  first_name_text_->setText(USER_FIRST_NAME);
+  first_name_text_->setEnabled(false);
+  first_name_layout->addWidget(first_name_label_);
+  first_name_layout->addWidget(first_name_text_);
+  first_last_name_layout->addLayout(first_name_layout);
+
+  QHBoxLayout* last_name_layout = new QHBoxLayout;
+  last_name_label_ = new QLabel;
+  last_name_text_ = new QLineEdit;
+  last_name_text_->setText(USER_LAST_NAME);
+  last_name_text_->setEnabled(false);
+  last_name_layout->addWidget(last_name_label_);
+  last_name_layout->addWidget(last_name_text_);
+  first_last_name_layout->addLayout(last_name_layout);
+
+  QHBoxLayout* login_layout = new QHBoxLayout;
   login_label_ = new QLabel;
   login_text_ = new QLineEdit;
-  login_text_->setText(USER_SPECIFIC_LOGIN);
+  login_text_->setText(USER_LOGIN);
   login_text_->setEnabled(false);
-  profile_layout->addWidget(login_label_);
-  profile_layout->addWidget(login_text_);
+  login_layout->addWidget(login_label_);
+  login_layout->addWidget(login_text_);
+
+  profile_layout->addLayout(first_last_name_layout);
+  profile_layout->addLayout(login_layout);
   profile_box_->setLayout(profile_layout);
 #endif
 
@@ -209,6 +232,8 @@ void PreferencesDialog::retranslateUi() {
   general_box_->setTitle(trGeneralSettings);
 #ifndef IS_PUBLIC_BUILD
   profile_box_->setTitle(trProfileSettings);
+  first_name_label_->setText(translations::trFirstName + ":");
+  last_name_label_->setText(translations::trLastName + ":");
   login_label_->setText(translations::trLogin + ":");
 #endif
   send_statitsic_->setText(trSendStatistic);

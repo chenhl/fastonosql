@@ -51,6 +51,10 @@ class PreferencesDialog : public QDialog {
 #ifndef IS_PUBLIC_BUILD
   // controls in profile_box
   QGroupBox* profile_box_;
+  QLabel* first_name_label_;
+  QLineEdit* first_name_text_;
+  QLabel* last_name_label_;
+  QLineEdit* last_name_text_;
   QLabel* login_label_;
   QLineEdit* login_text_;
 #endif

@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
 
 #ifndef IS_PUBLIC_BUILD
   fastonosql::gui::PasswordDialog password_dialog;
-  password_dialog.SetLogin(USER_SPECIFIC_LOGIN);
+  password_dialog.SetLogin(USER_LOGIN);
   password_dialog.SetLoginEnabled(false);
   if (password_dialog.exec() == QDialog::Rejected) {
     return EXIT_FAILURE;
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 
   std::string request;
   common::Error request_err =
-      fastonosql::server::GenSubscriptionStateRequest(USER_SPECIFIC_LOGIN, hexed_password, &request);
+      fastonosql::server::GenSubscriptionStateRequest(USER_LOGIN, hexed_password, &request);
   if (request_err) {
     QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
                           QObject::tr("Sorry can't generate password request, for checking your passowrd."));
