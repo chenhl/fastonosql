@@ -660,6 +660,7 @@ int CompareEncodedIDBKeys(StringPiece* slice_a, StringPiece* slice_b, bool* ok) 
 namespace {
 template <typename KeyType>
 int Compare(const StringPiece& a, const StringPiece& b, bool only_compare_index_keys, bool* ok) {
+  UNUSED(only_compare_index_keys);
   KeyType key_a;
   KeyType key_b;
   StringPiece slice_a(a);
@@ -682,6 +683,7 @@ int CompareSuffix(StringPiece* a, StringPiece* b, bool only_compare_index_keys, 
 }
 template <>
 int CompareSuffix<ExistsEntryKey>(StringPiece* slice_a, StringPiece* slice_b, bool only_compare_index_keys, bool* ok) {
+  UNUSED(only_compare_index_keys);
   DCHECK(!slice_a->empty());
   DCHECK(!slice_b->empty());
   return CompareEncodedIDBKeys(slice_a, slice_b, ok);
@@ -691,10 +693,12 @@ int CompareSuffix<ObjectStoreDataKey>(StringPiece* slice_a,
                                       StringPiece* slice_b,
                                       bool only_compare_index_keys,
                                       bool* ok) {
+  UNUSED(only_compare_index_keys);
   return CompareEncodedIDBKeys(slice_a, slice_b, ok);
 }
 template <>
 int CompareSuffix<BlobEntryKey>(StringPiece* slice_a, StringPiece* slice_b, bool only_compare_index_keys, bool* ok) {
+  UNUSED(only_compare_index_keys);
   return CompareEncodedIDBKeys(slice_a, slice_b, ok);
 }
 template <>
