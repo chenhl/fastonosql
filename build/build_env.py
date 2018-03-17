@@ -102,7 +102,7 @@ class BuildRequest(object):
             os.chdir(abs_dir_path)
             raise ex
 
-    def build_libssh2(self, cmake_line, make_install):
+    def build_libssh2(self, cmake_line, prefix_path, make_install):
         abs_dir_path = self.build_dir_path_
         try:
             cloned_dir = utils.git_clone('https://github.com/fastogt/libssh2.git', abs_dir_path)
@@ -114,9 +114,10 @@ class BuildRequest(object):
             libssh2_cmake_line.append('-DBUILD_SHARED_LIBS=OFF')
             libssh2_cmake_line.append('-DCRYPTO_BACKEND=OpenSSL')
             libssh2_cmake_line.append('-DENABLE_ZLIB_COMPRESSION=ON')
-            libssh2_cmake_line.append('-DOPENSSL_USE_STATIC_LIBS=ON')
             libssh2_cmake_line.append('-DBUILD_EXAMPLES=OFF')
             libssh2_cmake_line.append('-DBUILD_TESTING=OFF')
+            libssh2_cmake_line.append('-DOPENSSL_USE_STATIC_LIBS=ON')
+            libssh2_cmake_line.append('-DOPENSSL_ROOT_DIR={0}'.format(prefix_path))
             cmake_policy = run_command.CmakePolicy(print_message)
             make_policy = run_command.CommonPolicy(print_message)
             run_command.run_command_cb(libssh2_cmake_line, cmake_policy)
@@ -336,7 +337,7 @@ class BuildRequest(object):
 
         self.build_snappy(cmake_line, make_install)
         self.build_openssl(prefix_path)
-        self.build_libssh2(cmake_line, make_install)
+        self.build_libssh2(cmake_line, prefix_path, make_install)
         self.build_jsonc(cmake_line, make_install)
         self.build_qscintilla(cmake_line, make_install)
         self.build_common(cmake_line, make_install)

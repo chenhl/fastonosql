@@ -122,18 +122,20 @@ class BuildRequest(object):
         # project static options
         log_to_file_args = '-DLOG_TO_FILE=ON'
         if is_android:
-            openssl_args = '-DOPENSSL_USE_STATIC_LIBS=OFF'
+            openssl_args = ['-DOPENSSL_USE_STATIC_LIBS=OFF']
             zlib_args = '-DZLIB_USE_STATIC=OFF'
             bzip2_args = '-DBZIP2_USE_STATIC=OFF'
         else:
-            openssl_args = '-DOPENSSL_USE_STATIC_LIBS=ON'
+            prefix_path = self.platform_.arch().default_install_prefix_path()
+            openssl_args = ['-DOPENSSL_USE_STATIC_LIBS=ON', '-DOPENSSL_ROOT_DIR={0}'.format(prefix_path)]
             zlib_args = '-DZLIB_USE_STATIC=ON'
             bzip2_args = '-DBZIP2_USE_STATIC=ON'
         snappy_args = '-DSNAPPY_USE_STATIC=ON'
         jsonc_args = '-DJSONC_USE_STATIC=ON'
 
         cmake_line = ['cmake', cmake_project_root_abs_path, generator, '-DCMAKE_BUILD_TYPE=RELEASE', log_to_file_args,
-                      openssl_args, zlib_args, bzip2_args, snappy_args, jsonc_args]
+                      zlib_args, bzip2_args, snappy_args, jsonc_args]
+        cmake_line.extend(openssl_args)
 
         if is_android:
             toolchain_path = os.path.join(cmake_project_root_abs_path, 'cmake/android.toolchain.cmake')
