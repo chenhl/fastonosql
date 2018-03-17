@@ -18,8 +18,7 @@ def print_usage():
     print("Usage:\n"
           "[optional] argv[1] platform\n"
           "[optional] argv[2] architecture\n"
-          "[optional] argv[3] build system for common/qscintilla/libssh2 (\"ninja\", \"make\", \"gmake\")\n"
-          "[optional] argv[4] prefix path\n")
+          "[optional] argv[3] build system for common/qscintilla/libssh2 (\"ninja\", \"make\", \"gmake\")\n")
 
 
 def print_message(progress, message):
@@ -311,7 +310,7 @@ class BuildRequest(object):
             os.chdir(abs_dir_path)
             raise ex
 
-    def build(self, bs, prefix_path):
+    def build(self, bs):
         cmake_project_root_abs_path = '..'
         if not os.path.exists(cmake_project_root_abs_path):
             raise utils.BuildError('invalid cmake_project_root_path: %s' % cmake_project_root_abs_path)
@@ -319,8 +318,7 @@ class BuildRequest(object):
         if not bs:
             bs = system_info.SUPPORTED_BUILD_SYSTEMS[0]
 
-        if not prefix_path:
-            prefix_path = self.platform_.arch().default_install_prefix_path()
+        prefix_path = self.platform_.arch().default_install_prefix_path()
 
         generator = bs.cmake_generator_arg()
         build_system_args = bs.cmd_line()
@@ -371,10 +369,5 @@ if __name__ == "__main__":
     else:
         args_bs = None
 
-    if argc > 4:
-        args_prefix_path = sys.argv[5]
-    else:
-        args_prefix_path = None
-
     request = BuildRequest(platform_str, arch_bit_str, 'build_' + platform_str + '_env')
-    request.build(args_bs, args_prefix_path)
+    request.build(args_bs)

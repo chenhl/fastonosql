@@ -1,6 +1,7 @@
-1.16.7 / March 15, 2018
+1.16.7 / March 17, 2018
 [Alexandr Topilski]
 - Compiler flags
+- Up Openssl to 1.1.0g version
 
 1.16.6 / March 12, 2018
 [Alexandr Topilski]
