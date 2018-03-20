@@ -48,7 +48,7 @@ class PreferencesDialog : public QDialog {
 
  private:
   void retranslateUi();
-#ifndef IS_PUBLIC_BUILD
+
   // controls in profile_box
   QGroupBox* profile_box_;
   QLabel* first_name_label_;
@@ -57,7 +57,6 @@ class PreferencesDialog : public QDialog {
   QLineEdit* last_name_text_;
   QLabel* login_label_;
   QLineEdit* login_text_;
-#endif
 
   // controls in general_box
   QGroupBox* general_box_;

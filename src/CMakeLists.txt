@@ -205,6 +205,8 @@ SET(HEADERS_PROXY
   ${CMAKE_SOURCE_DIR}/src/proxy/cluster_connection_settings_factory.h
   ${CMAKE_SOURCE_DIR}/src/proxy/sentinel_connection_settings_factory.h
   ${CMAKE_SOURCE_DIR}/src/proxy/connection_settings_factory.h
+  ${CMAKE_SOURCE_DIR}/src/proxy/user_info.h
+  ${CMAKE_SOURCE_DIR}/src/proxy/server_config.h
 )
 
 SET(SOURCES_PROXY
@@ -224,6 +226,8 @@ SET(SOURCES_PROXY
   ${CMAKE_SOURCE_DIR}/src/proxy/cluster_connection_settings_factory.cpp
   ${CMAKE_SOURCE_DIR}/src/proxy/sentinel_connection_settings_factory.cpp
   ${CMAKE_SOURCE_DIR}/src/proxy/connection_settings_factory.cpp
+  ${CMAKE_SOURCE_DIR}/src/proxy/user_info.cpp
+  ${CMAKE_SOURCE_DIR}/src/proxy/server_config.cpp
 )
 
 # gui, translation, global
@@ -1215,19 +1219,7 @@ ELSE()
   ENDIF()
   MESSAGE(STATUS "USER_LOGIN: ${USER_LOGIN}")
 
-  IF("${USER_FIRST_NAME}" STREQUAL "")
-    MESSAGE(FATAL_ERROR "For individual builds USER_FIRST_NAME vaiable must have value.")
-  ENDIF()
-  MESSAGE(STATUS "USER_FIRST_NAME: ${USER_FIRST_NAME}")
-
-  IF("${USER_LAST_NAME}" STREQUAL "")
-    MESSAGE(FATAL_ERROR "For individual builds USER_LAST_NAME vaiable must have value.")
-  ENDIF()
-  MESSAGE(STATUS "USER_LAST_NAME: ${USER_LAST_NAME}")
-
   ADD_DEFINITIONS(-DUSER_LOGIN="${USER_LOGIN}")
-  ADD_DEFINITIONS(-DUSER_FIRST_NAME="${USER_FIRST_NAME}")
-  ADD_DEFINITIONS(-DUSER_LAST_NAME="${USER_LAST_NAME}")
 ENDIF(IS_PUBLIC_BUILD)
 
 SET(HEADERS_TOMOC
@@ -1238,13 +1230,11 @@ SET(HEADERS
   ${HEADERS_GUI}
   ${HEADERS_PROXY}
   ${HEADERS_TRANSLATIONS}
-  ${CMAKE_SOURCE_DIR}/src/server/server_config.h
 )
 SET(SOURCES
   ${SOURCES_GUI}
   ${SOURCES_PROXY}
   ${SOURCES_TRANSLATIONS}
-  ${CMAKE_SOURCE_DIR}/src/server/server_config.cpp
 )
 
 QT5_WRAP_CPP(MOC_FILES ${HEADERS_TOMOC})

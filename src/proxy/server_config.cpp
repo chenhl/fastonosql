@@ -1,8 +1,10 @@
-#include "server/server_config.h"
+#include "proxy/server_config.h"
 
-#include <json-c/json_object.h>
+#include <json-c/json_tokener.h>
 
+#include <common/convert2string.h>
 #include <common/protocols/json_rpc/json_rpc.h>
+#include <common/protocols/json_rpc/json_rpc_responce.h>
 
 #include <common/system_info/system_info.h>  // for SystemInfo, etc
 
@@ -24,17 +26,21 @@
 #define STATISTIC_PROJECT_VERSION_FIELD "version"
 #define STATISTIC_PROJECT_ARCH_FIELD "arch"
 #define STATISTIC_OWNER_FIELD "owner"
-#define STATISTIC_PROJECT_EXEC_COUNT_FIELD "exec_count"
+
+// subs
+#define USER_FIRST_NAME "first_name"
+#define USER_LAST_NAME "last_name"
 
 namespace fastonosql {
-namespace server {
+namespace proxy {
 
-#ifndef IS_PUBLIC_BUILD
-common::Error GenSubscriptionStateRequest(const std::string& login, const std::string& password, std::string* request) {
-  if (login.empty() || password.empty() || !request) {
+common::Error GenSubscriptionStateRequest(const UserInfo& user_info, std::string* request) {
+  if (!user_info.IsValid() || !request) {
     return common::make_error_inval();
   }
 
+  std::string login = user_info.GetLogin();
+  std::string password = user_info.GetPassword();
   json_object* cred_json = json_object_new_object();
   json_object_object_add(cred_json, SUBSCRIBED_LOGIN_FIELD, json_object_new_string(login.c_str()));
   json_object_object_add(cred_json, SUBSCRIBED_PASSWORD_FIELD, json_object_new_string(password.c_str()));
@@ -55,15 +61,53 @@ common::Error GenSubscriptionStateRequest(const std::string& login, const std::s
   return common::Error();
 }
 
-common::Error ParseSubscriptionStateResponce(const std::string& data,
-                                             common::protocols::json_rpc::JsonRPCResponce* result) {
-  if (data.empty()) {
+common::Error ParseSubscriptionStateResponce(const std::string& data, UserInfo* result) {
+  if (data.empty() || !result) {
     return common::make_error_inval();
   }
 
-  return common::protocols::json_rpc::ParseJsonRPCResponce(data, result);
+  common::protocols::json_rpc::JsonRPCResponce jres;
+  common::Error err = common::protocols::json_rpc::ParseJsonRPCResponce(data, &jres);
+  if (err) {
+    return err;
+  }
+
+  if (jres.IsError()) {
+    return common::make_error(jres.error->message);
+  }
+
+  std::string result_str = jres.message->result;
+  if (result_str.empty()) {
+    return common::make_error_inval();
+  }
+
+  json_object* obj = json_tokener_parse(result_str.c_str());
+  if (!obj) {
+    return common::make_error_inval();
+  }
+
+  UserInfo lres = *result;
+  json_object* jfirst_name = NULL;
+  bool jfirst_name_exist = json_object_object_get_ex(obj, USER_FIRST_NAME, &jfirst_name);
+  if (!jfirst_name_exist) {
+    json_object_put(obj);
+    return common::make_error_inval();
+  }
+  lres.SetFirstName(json_object_get_string(jfirst_name));
+
+  json_object* jlast_name = NULL;
+  bool jlast_name_exist = json_object_object_get_ex(obj, USER_LAST_NAME, &jlast_name);
+  if (!jlast_name_exist) {
+    json_object_put(obj);
+    return common::make_error_inval();
+  }
+  lres.SetLastName(json_object_get_string(jlast_name));
+
+  json_object_put(obj);
+
+  *result = lres;
+  return common::Error();
 }
-#endif
 
 common::Error GenVersionRequest(std::string* request) {
   if (!request) {
@@ -85,15 +129,31 @@ common::Error GenVersionRequest(std::string* request) {
   return common::Error();
 }
 
-common::Error ParseVersionResponce(const std::string& data, common::protocols::json_rpc::JsonRPCResponce* result) {
-  if (data.empty() || !result) {
+common::Error ParseVersionResponce(const std::string& data, uint32_t* version) {
+  if (data.empty() || !version) {
     return common::make_error_inval();
   }
 
-  return common::protocols::json_rpc::ParseJsonRPCResponce(data, result);
+  common::protocols::json_rpc::JsonRPCResponce jres;
+  common::Error err = common::protocols::json_rpc::ParseJsonRPCResponce(data, &jres);
+  if (err) {
+    return err;
+  }
+
+  if (jres.IsError()) {
+    return common::make_error(jres.error->message);
+  }
+
+  std::string result_str = jres.message->result;
+  if (result_str.empty()) {
+    return common::make_error_inval();
+  }
+
+  *version = common::ConvertVersionNumberFromString(result_str);
+  return common::Error();
 }
 
-common::Error GenStatisticRequest(const std::string& login, uint32_t exec_count, std::string* request) {
+common::Error GenStatisticRequest(const std::string& login, std::string* request) {
   if (!request || login.empty()) {
     return common::make_error_inval();
   }
@@ -114,11 +174,7 @@ common::Error GenStatisticRequest(const std::string& login, uint32_t exec_count,
   json_object_object_add(project_json, STATISTIC_PROJECT_NAME_FIELD, json_object_new_string(PROJECT_NAME));
   json_object_object_add(project_json, STATISTIC_PROJECT_VERSION_FIELD, json_object_new_string(PROJECT_VERSION));
   json_object_object_add(project_json, STATISTIC_PROJECT_ARCH_FIELD, json_object_new_string(PROJECT_ARCH));
-#ifndef IS_PUBLIC_BUILD
   json_object_object_add(project_json, STATISTIC_OWNER_FIELD, json_object_new_string(login.c_str()));
-#endif
-  json_object_object_add(project_json, STATISTIC_PROJECT_EXEC_COUNT_FIELD,
-                         json_object_new_int64(static_cast<int64_t>(exec_count)));
   json_object_object_add(stats_json, STATISTIC_PROJECT_FIELD, project_json);
 
   json_object* command_json = NULL;
@@ -138,14 +194,14 @@ common::Error GenStatisticRequest(const std::string& login, uint32_t exec_count,
   return common::Error();
 }
 
-common::Error ParseSendStatisticResponce(const std::string& data,
-                                         common::protocols::json_rpc::JsonRPCResponce* result) {
+common::Error ParseSendStatisticResponce(const std::string& data) {
   if (data.empty()) {
     return common::make_error_inval();
   }
 
-  return common::protocols::json_rpc::ParseJsonRPCResponce(data, result);
+  common::protocols::json_rpc::JsonRPCResponce jres;
+  return common::protocols::json_rpc::ParseJsonRPCResponce(data, &jres);
 }
 
-}  // namespace server
+}  // namespace proxy
 }  // namespace fastonosql

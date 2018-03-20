@@ -19,16 +19,14 @@
 #include "gui/statistic_sender.h"
 
 #include <common/net/socket_tcp.h>  // for ClientSocketTcp
+#include <common/qt/convert2string.h>
 
-#include "server/server_config.h"  // for FASTONOSQL_URL, etc
+#include "proxy/server_config.h"  // for FASTONOSQL_URL, etc
 
 namespace fastonosql {
-namespace gui {
-
-StatisticSender::StatisticSender(const std::string& login, uint32_t exec_count, QObject* parent)
-    : QObject(parent), exec_count_(exec_count), login_(login) {}
-
-void StatisticSender::routine() {
+namespace {
+common::Error SendStatistic(const std::string& login) {
+  CHECK(!login.empty());
 #if defined(FASTONOSQL)
   common::net::ClientSocketTcp client(common::net::HostAndPort(FASTONOSQL_HOST, SERVER_REQUESTS_PORT));
 #elif defined(FASTOREDIS)
@@ -38,44 +36,56 @@ void StatisticSender::routine() {
 #endif
   common::ErrnoError err = client.Connect();
   if (err) {
-    emit statisticSended(false);
-    return;
+    return common::make_error_from_errno(err);
   }
 
   std::string request;
-  common::Error request_gen_err = server::GenStatisticRequest(login_, exec_count_, &request);
+  common::Error request_gen_err = proxy::GenStatisticRequest(login, &request);
   if (request_gen_err) {
-    emit statisticSended(false);
-    err = client.Close();
-    DCHECK(!err) << "Close client error: " << err->GetDescription();
-    return;
+    common::ErrnoError lerr = client.Close();
+    DCHECK(!lerr) << "Close client error: " << err->GetDescription();
+    return request_gen_err;
   }
 
   size_t nwrite = 0;
   err = client.Write(request, &nwrite);
   if (err) {
-    emit statisticSended(false);
-    err = client.Close();
-    DCHECK(!err) << "Close client error: " << err->GetDescription();
-    return;
+    common::ErrnoError lerr = client.Close();
+    DCHECK(!lerr) << "Close client error: " << err->GetDescription();
+    return common::make_error_from_errno(err);
   }
 
   std::string stat_reply;
   size_t nread = 0;
   err = client.Read(&stat_reply, 256, &nread);
   if (err) {
-    emit statisticSended(false);
-    err = client.Close();
-    DCHECK(!err) << "Close client error: " << err->GetDescription();
+    common::ErrnoError lerr = client.Close();
+    DCHECK(!lerr) << "Close client error: " << err->GetDescription();
+    return common::make_error_from_errno(err);
+  }
+
+  common::Error jerror = proxy::ParseSendStatisticResponce(stat_reply);
+  err = client.Close();
+  DCHECK(!err) << "Close client error: " << err->GetDescription();
+
+  return jerror;
+}
+}  // namespace
+
+namespace gui {
+
+StatisticSender::StatisticSender(const std::string& login, QObject* parent) : QObject(parent), login_(login) {}
+
+void StatisticSender::routine() {
+  common::Error err = SendStatistic(login_);
+  if (err) {
+    QString qerror_message;
+    common::ConvertFromString(err->GetDescription(), &qerror_message);
+    statisticSended(qerror_message);
     return;
   }
 
-  common::protocols::json_rpc::JsonRPCResponce result;
-  common::Error jerror = server::ParseSendStatisticResponce(stat_reply, &result);
-  emit statisticSended(!jerror);
-  err = client.Close();
-  DCHECK(!err) << "Close client error: " << err->GetDescription();
+  statisticSended(QString());
 }
-
 }  // namespace gui
 }  // namespace fastonosql

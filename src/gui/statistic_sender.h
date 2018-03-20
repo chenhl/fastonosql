@@ -26,16 +26,15 @@ namespace gui {
 class StatisticSender : public QObject {
   Q_OBJECT
  public:
-  explicit StatisticSender(const std::string& login, uint32_t exec_count, QObject* parent = Q_NULLPTR);
+  explicit StatisticSender(const std::string& login, QObject* parent = Q_NULLPTR);
 
  Q_SIGNALS:
-  void statisticSended(bool succesResult);
+  void statisticSended(const QString& error_message);
 
  public Q_SLOTS:
   void routine();
 
  private:
-  const uint32_t exec_count_;
   const std::string login_;
 };
 

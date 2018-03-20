@@ -67,8 +67,8 @@ class MainWindow : public QMainWindow {
   void importConnection();
   void exportConnection();
 
-  void versionAvailible(bool succesResult, const QString& version);
-  void statitsticSent(bool succesResult);
+  void versionAvailible(const QString& error_message, unsigned version);
+  void statitsticSent(const QString& error_message);
 
   void closeServer(proxy::IServerSPtr server);
   void closeSentinel(proxy::ISentinelSPtr sentinel);

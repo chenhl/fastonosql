@@ -29,7 +29,7 @@ class UpdateChecker : public QObject {
   explicit UpdateChecker(QObject* parent = Q_NULLPTR);
 
  Q_SIGNALS:
-  void versionAvailibled(bool succesResult, const QString& version);
+  void versionAvailibled(const QString& error_message, unsigned version);
 
  public Q_SLOTS:
   void routine();

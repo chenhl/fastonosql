@@ -149,7 +149,6 @@ const QString trRemoveDatabase = QObject::tr("Remove database");
 const QString trExpTree = QObject::tr("Explorer tree");
 const QString trRecentConnections = QObject::tr("Recent connections");
 const QString trCheckVersion = QObject::tr("Check version");
-const QString trConnectionErrorText = QObject::tr("Connection error!");
 const QString trNewTab = QObject::tr("New tab");
 const QString trNextTab = QObject::tr("Next tab");
 const QString trPrevTab = QObject::tr("Prev tab");

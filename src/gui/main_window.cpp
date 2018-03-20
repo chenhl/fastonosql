@@ -79,8 +79,7 @@ const QString trSettingsLoadedS = QObject::tr("Settings successfully loaded!");
 const QString trSettingsImportedS = QObject::tr("Settings successfully imported!");
 const QString trSettingsExportedS = QObject::tr("Settings successfully encrypted and exported!");
 
-bool IsNeededUpdate(const std::string& sversion) {
-  uint32_t cver = common::ConvertVersionNumberFromString(sversion);
+bool IsNeedUpdate(uint32_t cver) {
   return PROJECT_VERSION_NUMBER < cver;
 }
 
@@ -344,14 +343,10 @@ void MainWindow::checkUpdate() {
 
 void MainWindow::sendStatistic() {
   QThread* th = new QThread;
-  uint32_t exec_count = proxy::SettingsManager::GetInstance()->GetExecCount();
+  proxy::UserInfo uinf = proxy::SettingsManager::GetInstance()->GetUserInfo();
 
-#ifndef IS_PUBLIC_BUILD
-  const std::string login = USER_LOGIN;
-#else
-  const std::string login = "anon@fastogt.com";
-#endif
-  StatisticSender* sender = new StatisticSender(login, exec_count);
+  const std::string login = uinf.GetLogin();
+  StatisticSender* sender = new StatisticSender(login);
   sender->moveToThread(th);
   VERIFY(connect(th, &QThread::started, sender, &StatisticSender::routine));
   VERIFY(connect(sender, &StatisticSender::statisticSended, this, &MainWindow::statitsticSent));
@@ -566,30 +561,30 @@ void MainWindow::exportConnection() {
   QMessageBox::information(this, translations::trInfo, trSettingsExportedS);
 }
 
-void MainWindow::versionAvailible(bool succesResult, const QString& version) {
-  if (!succesResult) {
-    QMessageBox::information(this, translations::trCheckVersion, translations::trConnectionErrorText);
+void MainWindow::versionAvailible(const QString& error_message, unsigned version) {
+  if (!error_message.isEmpty()) {
+    QMessageBox::information(this, translations::trCheckVersion, error_message);
     check_update_action_->setEnabled(true);
     return;
   }
 
-  std::string sver = common::ConvertToString(version);
-  bool is_need_update = IsNeededUpdate(sver);
+  bool is_need_update = IsNeedUpdate(version);
   if (is_need_update) {
+    std::string version_str = common::ConvertVersionNumberTo2DotString(version);
+    QString qversion_str;
+    common::ConvertFromString(version_str, &qversion_str);
     QMessageBox::information(
         this, translations::trCheckVersion,
         QObject::tr("<h4>A new version(%1) of " PROJECT_NAME_TITLE " is availible!</h4>"
                     "You can download it in your <a href=\"" PROJECT_DOWNLOAD_LINK "\">profile page</a>")
-            .arg(version));
+            .arg(qversion_str));
   }
 
   check_update_action_->setEnabled(is_need_update);
 }
 
-void MainWindow::statitsticSent(bool succesResult) {
-  if (succesResult) {
-    proxy::SettingsManager::GetInstance()->SetSendStatistic(true);
-  }
+void MainWindow::statitsticSent(const QString& error_message) {
+  UNUSED(error_message);
 }
 
 void MainWindow::closeServer(proxy::IServerSPtr server) {

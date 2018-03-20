@@ -47,7 +47,7 @@ const QString trSendStatistic = QObject::tr("Send statistic");
 const QString trAutoCheckUpd = QObject::tr("Automatically check for updates");
 const QString trShowAutoCompletion = QObject::tr("Show autocompletion");
 const QString trAutoOpenConsole = QObject::tr("Automatically open console");
-const QString trAutoConnectDb = QObject::tr("Automatically connect to db");
+const QString trAutoConnectDb = QObject::tr("Automatically connect to DB");
 const QString trFastViewValues = QObject::tr("Fast view values");
 const QString trLanguage = QObject::tr("Language:");
 const QString trSupportedUiStyles = QObject::tr("Supported UI styles:");
@@ -62,14 +62,17 @@ namespace gui {
 PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent) {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);  // Remove help
                                                                      // button (?)
-#ifndef IS_PUBLIC_BUILD
+
+  proxy::UserInfo uinfo = proxy::SettingsManager::GetInstance()->GetUserInfo();
   profile_box_ = new QGroupBox;
   QVBoxLayout* profile_layout = new QVBoxLayout;
   QHBoxLayout* first_last_name_layout = new QHBoxLayout;
   QHBoxLayout* first_name_layout = new QHBoxLayout;
   first_name_label_ = new QLabel;
   first_name_text_ = new QLineEdit;
-  first_name_text_->setText(USER_FIRST_NAME);
+  QString qfirst_name;
+  common::ConvertFromString(uinfo.GetFirstName(), &qfirst_name);
+  first_name_text_->setText(qfirst_name);
   first_name_text_->setEnabled(false);
   first_name_layout->addWidget(first_name_label_);
   first_name_layout->addWidget(first_name_text_);
@@ -78,7 +81,9 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent) {
   QHBoxLayout* last_name_layout = new QHBoxLayout;
   last_name_label_ = new QLabel;
   last_name_text_ = new QLineEdit;
-  last_name_text_->setText(USER_LAST_NAME);
+  QString qlast_name;
+  common::ConvertFromString(uinfo.GetLastName(), &qlast_name);
+  last_name_text_->setText(qlast_name);
   last_name_text_->setEnabled(false);
   last_name_layout->addWidget(last_name_label_);
   last_name_layout->addWidget(last_name_text_);
@@ -87,7 +92,9 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent) {
   QHBoxLayout* login_layout = new QHBoxLayout;
   login_label_ = new QLabel;
   login_text_ = new QLineEdit;
-  login_text_->setText(USER_LOGIN);
+  QString qlogin;
+  common::ConvertFromString(uinfo.GetLogin(), &qlogin);
+  login_text_->setText(qlogin);
   login_text_->setEnabled(false);
   login_layout->addWidget(login_label_);
   login_layout->addWidget(login_text_);
@@ -95,7 +102,6 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent) {
   profile_layout->addLayout(first_last_name_layout);
   profile_layout->addLayout(login_layout);
   profile_box_->setLayout(profile_layout);
-#endif
 
   // ui settings
   general_box_ = new QGroupBox;
@@ -155,9 +161,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent) : QDialog(parent) {
 
   // main layout
   QVBoxLayout* layout = new QVBoxLayout(this);
-#ifndef IS_PUBLIC_BUILD
   layout->addWidget(profile_box_);
-#endif
   layout->addWidget(general_box_);
 
   QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Save);
@@ -230,12 +234,10 @@ void PreferencesDialog::retranslateUi() {
   setWindowTitle(trPreferences);
 
   general_box_->setTitle(trGeneralSettings);
-#ifndef IS_PUBLIC_BUILD
   profile_box_->setTitle(trProfileSettings);
   first_name_label_->setText(translations::trFirstName + ":");
   last_name_label_->setText(translations::trLastName + ":");
   login_label_->setText(translations::trLogin + ":");
-#endif
   send_statitsic_->setText(trSendStatistic);
   auto_check_updates_->setText(trAutoCheckUpd);
   auto_comletion_->setText(trShowAutoCompletion);

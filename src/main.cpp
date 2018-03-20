@@ -26,9 +26,6 @@
 #include <QDesktopWidget>
 #include <QFile>
 #include <QMessageBox>
-#ifdef IS_PUBLIC_BUILD
-#include <QDateTime>
-#endif
 
 #include <common/convert2string.h>
 #include <common/hash/md5.h>
@@ -37,8 +34,8 @@
 #include <common/qt/convert2string.h>
 #include <common/qt/translations/translations.h>
 
+#include "proxy/server_config.h"
 #include "proxy/settings_manager.h"
-#include "server/server_config.h"
 
 #include "gui/gui_factory.h"
 #include "gui/main_window.h"
@@ -85,14 +82,27 @@ int main(int argc, char* argv[]) {
   app.setAttribute(Qt::AA_EnableHighDpiScaling);
   app.setWindowIcon(fastonosql::gui::GuiFactory::GetInstance().GetLogoIcon());  // default icon for app
 
-#ifndef IS_PUBLIC_BUILD
+  // EULA License Agreement
+  if (!settings_manager->GetAccpetedEula()) {
+    fastonosql::gui::EulaDialog eula_dialog;
+    if (eula_dialog.exec() == QDialog::Rejected) {
+      return EXIT_FAILURE;
+    }
+    // EULA accepted
+    settings_manager->SetAccpetedEula(true);
+  }
+
   fastonosql::gui::PasswordDialog password_dialog;
+#ifndef IS_PUBLIC_BUILD
   password_dialog.SetLogin(USER_LOGIN);
   password_dialog.SetLoginEnabled(false);
+#endif
   if (password_dialog.exec() == QDialog::Rejected) {
     return EXIT_FAILURE;
   }
 
+  const QString login = password_dialog.GetLogin();
+  const std::string login_str = common::ConvertToString(login);
   const QString password = password_dialog.GetPassword();
   const std::string password_str = common::ConvertToString(password);
   unsigned char md5_result[MD5_HASH_LENGHT];
@@ -116,9 +126,9 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
+  fastonosql::proxy::UserInfo user_info(login_str, hexed_password);
   std::string request;
-  common::Error request_err =
-      fastonosql::server::GenSubscriptionStateRequest(USER_LOGIN, hexed_password, &request);
+  common::Error request_err = fastonosql::proxy::GenSubscriptionStateRequest(user_info, &request);
   if (request_err) {
     QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
                           QObject::tr("Sorry can't generate password request, for checking your passowrd."));
@@ -150,43 +160,34 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  common::protocols::json_rpc::JsonRPCResponce result;
-  common::Error jerror = fastonosql::server::ParseSubscriptionStateResponce(subscribe_reply, &result);
-  if (jerror || result.IsError()) {
+  common::Error jerror = fastonosql::proxy::ParseSubscriptionStateResponce(subscribe_reply, &user_info);
+  if (jerror) {
     err = client.Close();
     DCHECK(!err) << "Close client error: " << err->GetDescription();
     QString qmessage;
-    common::ConvertFromString(result.error->message, &qmessage);
+    common::ConvertFromString(jerror->GetDescription(), &qmessage);
     QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication, QObject::tr("%1, bye.").arg(qmessage));
     return EXIT_FAILURE;
   }
-#endif
 
-  // EULA License Agreement
-  if (!settings_manager->GetAccpetedEula()) {
-    fastonosql::gui::EulaDialog eula_dialog;
-    if (eula_dialog.exec() == QDialog::Rejected) {
+  fastonosql::proxy::UserInfo::SubscriptionState user_sub_state = user_info.GetSubscriptionState();
+  if (user_sub_state != fastonosql::proxy::UserInfo::SUBSCRIBED) {
+    time_t expire_application_utc_time = user_info.GetExpireTime();
+    const QDateTime cur_time = QDateTime::currentDateTimeUtc();
+    const QDateTime end_date = QDateTime::fromTime_t(expire_application_utc_time, Qt::UTC);
+    if (cur_time > end_date) {
+      QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trExpired);
       return EXIT_FAILURE;
-    }
-    // EULA accepted
-    settings_manager->SetAccpetedEula(true);
-  }
-
-// 1514764800 1.1.2018:00:00
-#if defined(IS_PUBLIC_BUILD) && defined(EXPIRE_APPLICATION_UTC_TIME)
-  const QDateTime cur_time = QDateTime::currentDateTimeUtc();
-  const QDateTime end_date = QDateTime::fromTime_t(EXPIRE_APPLICATION_UTC_TIME, Qt::UTC);
-  if (cur_time > end_date) {
-    QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trExpired);
-    return EXIT_FAILURE;
-  } else {
-    uint32_t ex_count = settings_manager->GetExecCount();
-    fastonosql::gui::TrialTimeDialog trial_dialog(fastonosql::translations::trTrial, end_date, ex_count);
-    if (trial_dialog.exec() == QDialog::Rejected) {
-      return EXIT_FAILURE;
+    } else {
+      uint32_t ex_count = user_info.GetExecCount();
+      fastonosql::gui::TrialTimeDialog trial_dialog(fastonosql::translations::trTrial, end_date, ex_count);
+      if (trial_dialog.exec() == QDialog::Rejected) {
+        return EXIT_FAILURE;
+      }
     }
   }
-#endif
+
+  settings_manager->SetUserInfo(user_info);
 
   QFile file(":" PROJECT_NAME_LOWERCASE "/default.qss");
   file.open(QFile::ReadOnly);

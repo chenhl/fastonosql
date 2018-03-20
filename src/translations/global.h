@@ -149,7 +149,6 @@ extern const QString trRemoveDatabase;
 extern const QString trExpTree;
 extern const QString trRecentConnections;
 extern const QString trCheckVersion;
-extern const QString trConnectionErrorText;
 extern const QString trNewTab;
 extern const QString trNextTab;
 extern const QString trPrevTab;
