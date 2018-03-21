@@ -22,16 +22,24 @@ namespace fastonosql {
 namespace proxy {
 
 UserInfo::UserInfo()
-    : login_(), password_(), first_name_(), last_name_(), subscription_state_(TRIAL), exec_count_(0), expire_time_(0) {}
+    : login_(),
+      password_(),
+      first_name_(),
+      last_name_(),
+      subscription_state_(UNSUBSCIRBED),
+      exec_count_(0),
+      expire_time_(0),
+      user_id_() {}
 
 UserInfo::UserInfo(const std::string& login, const std::string& password)
     : login_(login),
       password_(password),
       first_name_(),
       last_name_(),
-      subscription_state_(TRIAL),
+      subscription_state_(UNSUBSCIRBED),
       exec_count_(0),
-      expire_time_(0) {}
+      expire_time_(0),
+      user_id_() {}
 
 std::string UserInfo::GetFirstName() const {
   return first_name_;
@@ -83,6 +91,14 @@ time_t UserInfo::GetExpireTime() const {
 
 void UserInfo::SetExpireTime(time_t expire_time) {
   expire_time_ = expire_time;
+}
+
+user_id_t UserInfo::GetUserID() const {
+  return user_id_;
+}
+
+void UserInfo::SetUserID(user_id_t user_id) {
+  user_id_ = user_id;
 }
 
 }  // namespace proxy

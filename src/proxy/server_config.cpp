@@ -30,6 +30,10 @@
 // subs
 #define USER_FIRST_NAME "first_name"
 #define USER_LAST_NAME "last_name"
+#define USER_SUBSCRIPTION_STATE "subscription_state"
+#define USER_EXEC_COUNT "exec_count"
+#define USER_EXPIRE_TIME "expire_time"
+#define USER_ID "id"
 
 namespace fastonosql {
 namespace proxy {
@@ -102,6 +106,42 @@ common::Error ParseSubscriptionStateResponce(const std::string& data, UserInfo* 
     return common::make_error_inval();
   }
   lres.SetLastName(json_object_get_string(jlast_name));
+
+  json_object* jsubscription_state = NULL;
+  bool jsubscription_state_exist = json_object_object_get_ex(obj, USER_SUBSCRIPTION_STATE, &jsubscription_state);
+  if (!jsubscription_state_exist) {
+    json_object_put(obj);
+    return common::make_error_inval();
+  }
+  proxy::UserInfo::SubscriptionState st = static_cast<proxy::UserInfo::SubscriptionState>(json_object_get_int(jsubscription_state));
+  lres.SetSubscriptionState(st);
+
+  json_object* jexec_count = NULL;
+  bool jexec_count_exist = json_object_object_get_ex(obj, USER_EXEC_COUNT, &jexec_count);
+  if (!jexec_count_exist) {
+    json_object_put(obj);
+    return common::make_error_inval();
+  }
+  int64_t exec_count = json_object_get_int64(jexec_count);
+  lres.SetExecCount(static_cast<size_t>(exec_count));
+
+  json_object* jexpire_time = NULL;
+  bool jexpire_time_exist = json_object_object_get_ex(obj, USER_EXPIRE_TIME, &jexpire_time);
+  if (!jexpire_time_exist) {
+    json_object_put(obj);
+    return common::make_error_inval();
+  }
+  time_t expire_time = json_object_get_int64(jexpire_time);
+  lres.SetExpireTime(expire_time);
+
+  json_object* juser_id = NULL;
+  bool juser_id_exist = json_object_object_get_ex(obj, USER_ID, &juser_id);
+  if (!juser_id_exist) {
+    json_object_put(obj);
+    return common::make_error_inval();
+  }
+  proxy::user_id_t user_id = json_object_get_string(juser_id);
+  lres.SetUserID(user_id);
 
   json_object_put(obj);
 

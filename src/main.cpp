@@ -28,6 +28,8 @@
 #include <QMessageBox>
 
 #include <common/convert2string.h>
+#include <common/file_system/file.h>
+#include <common/file_system/string_path_utils.h>
 #include <common/hash/md5.h>
 #include <common/logger.h>
 #include <common/net/socket_tcp.h>
@@ -45,6 +47,8 @@
 #include "gui/dialogs/trial_time_dialog.h"
 
 #include "translations/global.h"
+
+#define IDENTITY_FILE_NAME "IDENTITY"
 
 namespace {
 #ifdef OS_WIN
@@ -66,6 +70,18 @@ struct SigIgnInit {
 const QSize preferedSize = QSize(1024, 768);
 const QString trExpired = QObject::tr(
     "<h4>Your trial version has expired.</h4>"
+    "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
+
+const QString trDoubleUse_1S = QObject::tr(
+    "<h4>You trying to use another's trial version. Login: %1 will be banned.</h4>"
+    "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
+
+const QString trCantVerifyIdentity = QObject::tr(
+    "<h4>We can't verify your identity.</h4>"
+    "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
+
+const QString trCantSaveIdentity = QObject::tr(
+    "<h4>We can't save your identity.</h4>"
     "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
 }
 
@@ -122,7 +138,7 @@ int main(int argc, char* argv[]) {
   common::ErrnoError err = client.Connect();
   if (err) {
     QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
-                          QObject::tr("Sorry can't connect to server, for checking your passowrd."));
+                          QObject::tr("Sorry can't connect to server, for checking your credentials."));
     return EXIT_FAILURE;
   }
 
@@ -131,7 +147,7 @@ int main(int argc, char* argv[]) {
   common::Error request_err = fastonosql::proxy::GenSubscriptionStateRequest(user_info, &request);
   if (request_err) {
     QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
-                          QObject::tr("Sorry can't generate password request, for checking your passowrd."));
+                          QObject::tr("Sorry can't generate password request, for checking your credentials."));
     return EXIT_FAILURE;
   }
 
@@ -143,7 +159,7 @@ int main(int argc, char* argv[]) {
       DNOTREACHED();
     }
     QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
-                          QObject::tr("Sorry can't write request, for checking your passowrd."));
+                          QObject::tr("Sorry can't write request, for checking your credentials."));
     return EXIT_FAILURE;
   }
 
@@ -156,7 +172,7 @@ int main(int argc, char* argv[]) {
       DNOTREACHED();
     }
     QMessageBox::critical(nullptr, fastonosql::translations::trAuthentication,
-                          QObject::tr("Sorry can't get responce, for checking your passowrd."));
+                          QObject::tr("Sorry can't get responce, for checking your credentials."));
     return EXIT_FAILURE;
   }
 
@@ -171,7 +187,55 @@ int main(int argc, char* argv[]) {
   }
 
   fastonosql::proxy::UserInfo::SubscriptionState user_sub_state = user_info.GetSubscriptionState();
+  // if trial
   if (user_sub_state != fastonosql::proxy::UserInfo::SUBSCRIBED) {
+    size_t exec_count = user_info.GetExecCount();
+    fastonosql::proxy::user_id_t user_id = user_info.GetUserID();
+    std::string identity_path = settings_manager->GetSettingsDirPath() + IDENTITY_FILE_NAME;
+    if (exec_count == 1 && !common::file_system::is_file_exist(identity_path)) {
+      common::file_system::File identity_file;
+      err = identity_file.Open(identity_path,
+                               common::file_system::File::FLAG_CREATE | common::file_system::File::FLAG_WRITE);
+      if (err) {
+        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantVerifyIdentity);
+        return EXIT_FAILURE;
+      }
+
+      size_t writed;
+      err = identity_file.Write(user_id, &writed);
+      if (err) {
+        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantSaveIdentity);
+        return EXIT_FAILURE;
+      }
+
+      err = identity_file.Close();
+      if (err) {
+        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantSaveIdentity);
+        return EXIT_FAILURE;
+      }
+    } else {
+      common::file_system::ascii_string_path p(identity_path);
+      common::file_system::ANSIFile read_file(p);
+      common::ErrnoError err = read_file.Open("rb");
+      if (err) {
+        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantVerifyIdentity);
+        return EXIT_FAILURE;
+      }
+
+      fastonosql::proxy::user_id_t readed_id;
+      if (!read_file.ReadLine(&readed_id)) {
+        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantVerifyIdentity);
+        return EXIT_FAILURE;
+      }
+
+      read_file.Close();
+
+      if (readed_id != user_info.GetUserID()) {
+        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantVerifyIdentity);
+        return EXIT_FAILURE;
+      }
+    }
+
     time_t expire_application_utc_time = user_info.GetExpireTime();
     const QDateTime cur_time = QDateTime::currentDateTimeUtc();
     const QDateTime end_date = QDateTime::fromTime_t(expire_application_utc_time, Qt::UTC);

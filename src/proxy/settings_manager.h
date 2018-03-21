@@ -40,10 +40,10 @@ class SettingsManager : public common::patterns::Singleton<SettingsManager> {
   typedef std::vector<ISentinelSettingsBaseSPtr> sentinel_settings_t;
   friend class common::patterns::Singleton<SettingsManager>;
 
-  static std::string SettingsDirPath();
-  static std::string SettingsFilePath();
+  static std::string GetSettingsDirPath();
+  static std::string GetSettingsFilePath();
 
-  uint32_t ConfigVersion() const;
+  uint32_t GetConfigVersion() const;
 
   bool GetAccpetedEula() const;
   void SetAccpetedEula(bool val);

@@ -23,9 +23,11 @@
 namespace fastonosql {
 namespace proxy {
 
+typedef std::string user_id_t;
+
 class UserInfo {
  public:
-  enum SubscriptionState { TRIAL = 0, SUBSCRIBED, UNSUBSCIRBED };
+  enum SubscriptionState { UNSUBSCIRBED = 0, SUBSCRIBED };
   UserInfo();
   UserInfo(const std::string& login, const std::string& password);
 
@@ -49,6 +51,9 @@ class UserInfo {
   time_t GetExpireTime() const;
   void SetExpireTime(time_t expire_time);
 
+  user_id_t GetUserID() const;
+  void SetUserID(user_id_t user_id);
+
  private:
   std::string login_;
   std::string password_;
@@ -58,6 +63,7 @@ class UserInfo {
   SubscriptionState subscription_state_;
   size_t exec_count_;
   time_t expire_time_;
+  user_id_t user_id_;
 };
 
 }  // namespace proxy

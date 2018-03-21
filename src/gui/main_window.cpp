@@ -394,7 +394,7 @@ void MainWindow::openRecentConnection() {
 
 void MainWindow::loadConnection() {
   QString standardIni;
-  common::ConvertFromString(proxy::SettingsManager::SettingsFilePath(), &standardIni);
+  common::ConvertFromString(proxy::SettingsManager::GetSettingsFilePath(), &standardIni);
   QString filepathR =
       QFileDialog::getOpenFileName(this, tr("Select settings file"), standardIni, tr("Settings files (*.ini)"));
   if (filepathR.isNull()) {
@@ -406,7 +406,7 @@ void MainWindow::loadConnection() {
 }
 
 void MainWindow::importConnection() {
-  std::string dir_path = proxy::SettingsManager::SettingsDirPath();
+  std::string dir_path = proxy::SettingsManager::GetSettingsDirPath();
   QString qdir_path;
   common::ConvertFromString(dir_path, &qdir_path);
   QString filepathR = QFileDialog::getOpenFileName(this, tr("Select encrypted settings file"), qdir_path,
@@ -415,7 +415,7 @@ void MainWindow::importConnection() {
     return;
   }
 
-  std::string tmp = proxy::SettingsManager::SettingsFilePath() + ".tmp";
+  std::string tmp = proxy::SettingsManager::GetSettingsFilePath() + ".tmp";
 
   common::file_system::ascii_string_path wp(tmp);
   common::file_system::ANSIFile writeFile(wp);
@@ -488,7 +488,7 @@ void MainWindow::importConnection() {
 }
 
 void MainWindow::exportConnection() {
-  std::string dir_path = proxy::SettingsManager::SettingsDirPath();
+  std::string dir_path = proxy::SettingsManager::GetSettingsDirPath();
   QString qdir;
   common::ConvertFromString(dir_path, &qdir);
   QString filepathW = ShowSaveFileDialog(this, tr("Select file to save settings"), qdir, tr("Settings files (*.cini)"));
@@ -504,7 +504,7 @@ void MainWindow::exportConnection() {
     return;
   }
 
-  common::file_system::ascii_string_path rp(proxy::SettingsManager::SettingsFilePath());
+  common::file_system::ascii_string_path rp(proxy::SettingsManager::GetSettingsFilePath());
   common::file_system::ANSIFile readFile(rp);
   err = readFile.Open("rb");
   if (err) {

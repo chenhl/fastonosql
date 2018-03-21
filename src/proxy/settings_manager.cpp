@@ -93,15 +93,15 @@ SettingsManager::SettingsManager()
 
 SettingsManager::~SettingsManager() {}
 
-std::string SettingsManager::SettingsDirPath() {
+std::string SettingsManager::GetSettingsDirPath() {
   return common::file_system::get_dir_path(ini_path);
 }
 
-std::string SettingsManager::SettingsFilePath() {
+std::string SettingsManager::GetSettingsFilePath() {
   return common::file_system::prepare_path(ini_path);
 }
 
-uint32_t SettingsManager::ConfigVersion() const {
+uint32_t SettingsManager::GetConfigVersion() const {
   return config_version_;
 }
 
@@ -376,7 +376,7 @@ void SettingsManager::ReloadFromPath(const std::string& path, bool merge) {
     }
   }
 
-  std::string dir_path = SettingsDirPath();
+  std::string dir_path = GetSettingsDirPath();
   QString qdir;
   common::ConvertFromString(dir_path, &qdir);
   logging_dir_ = settings.value(LOGGINGDIR, qdir).toString();
@@ -395,7 +395,7 @@ void SettingsManager::Load() {
 
 void SettingsManager::Save() {
   QString qsave;
-  common::ConvertFromString(SettingsFilePath(), &qsave);
+  common::ConvertFromString(GetSettingsFilePath(), &qsave);
   QSettings settings(qsave, QSettings::IniFormat);
   DCHECK(settings.status() == QSettings::NoError);
 
