@@ -16,6 +16,9 @@
 #define SUBSCRIBED_LOGIN_FIELD "email"
 #define SUBSCRIBED_PASSWORD_FIELD "password"
 
+// statistic
+#define STATISTIC_EMAIL_FIELD "email"
+
 #define STATISTIC_OS_FIELD "os"
 #define STATISTIC_OS_NAME_FIELD "name"
 #define STATISTIC_OS_VERSION_FIELD "version"
@@ -25,7 +28,6 @@
 #define STATISTIC_PROJECT_NAME_FIELD "name"
 #define STATISTIC_PROJECT_VERSION_FIELD "version"
 #define STATISTIC_PROJECT_ARCH_FIELD "arch"
-#define STATISTIC_OWNER_FIELD "owner"
 
 // subs
 #define USER_FIRST_NAME "first_name"
@@ -113,7 +115,8 @@ common::Error ParseSubscriptionStateResponce(const std::string& data, UserInfo* 
     json_object_put(obj);
     return common::make_error_inval();
   }
-  proxy::UserInfo::SubscriptionState st = static_cast<proxy::UserInfo::SubscriptionState>(json_object_get_int(jsubscription_state));
+  proxy::UserInfo::SubscriptionState st =
+      static_cast<proxy::UserInfo::SubscriptionState>(json_object_get_int(jsubscription_state));
   lres.SetSubscriptionState(st);
 
   json_object* jexec_count = NULL;
@@ -199,6 +202,7 @@ common::Error GenStatisticRequest(const std::string& login, std::string* request
   }
 
   json_object* stats_json = json_object_new_object();
+  json_object_object_add(stats_json, STATISTIC_EMAIL_FIELD, json_object_new_string(login.c_str()));
   common::system_info::SystemInfo inf = common::system_info::currentSystemInfo();
 
   json_object* os_json = json_object_new_object();
@@ -214,7 +218,6 @@ common::Error GenStatisticRequest(const std::string& login, std::string* request
   json_object_object_add(project_json, STATISTIC_PROJECT_NAME_FIELD, json_object_new_string(PROJECT_NAME));
   json_object_object_add(project_json, STATISTIC_PROJECT_VERSION_FIELD, json_object_new_string(PROJECT_VERSION));
   json_object_object_add(project_json, STATISTIC_PROJECT_ARCH_FIELD, json_object_new_string(PROJECT_ARCH));
-  json_object_object_add(project_json, STATISTIC_OWNER_FIELD, json_object_new_string(login.c_str()));
   json_object_object_add(stats_json, STATISTIC_PROJECT_FIELD, project_json);
 
   json_object* command_json = NULL;
