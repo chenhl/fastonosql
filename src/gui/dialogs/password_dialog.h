@@ -31,6 +31,7 @@ class PasswordDialog : public QDialog {
   Q_OBJECT
  public:
   explicit PasswordDialog(QWidget* parent = Q_NULLPTR);
+  explicit PasswordDialog(const QString& description, QWidget* parent = Q_NULLPTR);
 
   QString GetLogin() const;
   void SetLogin(const QString& login);
@@ -39,6 +40,12 @@ class PasswordDialog : public QDialog {
   void SetPassword(const QString& password);
 
   void SetLoginEnabled(bool en);
+
+  void SetDescription(const QString& description);
+  QString GetDescription() const;
+
+  void SetVisibleDescription(bool visible);
+  bool isVisibleDescription() const;
 
  public Q_SLOTS:
   virtual void accept() override;
@@ -54,6 +61,8 @@ class PasswordDialog : public QDialog {
   void syncShowButton();
 
  private:
+  QLabel* description_;
+
   QLabel* login_label_;
   QLineEdit* login_text_;
 

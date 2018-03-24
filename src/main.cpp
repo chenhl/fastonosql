@@ -83,6 +83,9 @@ const QString trCantVerifyIdentity = QObject::tr(
 const QString trCantSaveIdentity = QObject::tr(
     "<h4>We can't save your identity.</h4>"
     "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
+
+const QString trSignin =
+    QObject::tr("<b>Please sign in (use the same credentials like on <a href=\"" PROJECT_DOMAIN "\">website</a>)</b>");
 }
 
 int main(int argc, char* argv[]) {
@@ -109,6 +112,7 @@ int main(int argc, char* argv[]) {
   }
 
   fastonosql::gui::PasswordDialog password_dialog;
+  password_dialog.SetDescription(trSignin);
 #ifndef IS_PUBLIC_BUILD
   password_dialog.SetLogin(USER_LOGIN);
   password_dialog.SetLoginEnabled(false);

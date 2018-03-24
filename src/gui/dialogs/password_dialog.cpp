@@ -36,7 +36,16 @@ const QString trPasswordDialogTitle = QObject::tr("Password dialog for " PROJECT
 namespace fastonosql {
 namespace gui {
 
-PasswordDialog::PasswordDialog(QWidget* parent) : QDialog(parent) {
+PasswordDialog::PasswordDialog(QWidget* parent) : PasswordDialog(QString(), parent) {}
+
+PasswordDialog::PasswordDialog(const QString& description, QWidget* parent)
+    : QDialog(parent),
+      description_(nullptr),
+      login_label_(nullptr),
+      login_text_(nullptr),
+      password_label_(nullptr),
+      password_box_(nullptr),
+      password_echo_mode_button_(nullptr) {
   Qt::WindowFlags flags = windowFlags();
   setWindowFlags(flags & ~Qt::WindowContextHelpButtonHint);
 
@@ -44,6 +53,10 @@ PasswordDialog::PasswordDialog(QWidget* parent) : QDialog(parent) {
   buttonBox->setOrientation(Qt::Horizontal);
   VERIFY(connect(buttonBox, &QDialogButtonBox::accepted, this, &PasswordDialog::accept));
   VERIFY(connect(buttonBox, &QDialogButtonBox::rejected, this, &PasswordDialog::reject));
+
+  description_ = new QLabel;
+  description_->setText(description);
+  description_->setOpenExternalLinks(true);
 
   QHBoxLayout* profile_layout = new QHBoxLayout;
   login_label_ = new QLabel;
@@ -62,6 +75,7 @@ PasswordDialog::PasswordDialog(QWidget* parent) : QDialog(parent) {
   password_layout->addWidget(password_echo_mode_button_);
 
   QVBoxLayout* mainLayout = new QVBoxLayout;
+  mainLayout->addWidget(description_);
   mainLayout->addLayout(profile_layout);
   mainLayout->addLayout(password_layout);
   mainLayout->addWidget(buttonBox);
@@ -88,6 +102,22 @@ void PasswordDialog::SetPassword(const QString& password) {
 
 void PasswordDialog::SetLoginEnabled(bool en) {
   login_text_->setEnabled(en);
+}
+
+void PasswordDialog::SetDescription(const QString& description) {
+  description_->setText(description);
+}
+
+QString PasswordDialog::GetDescription() const {
+  return description_->text();
+}
+
+void PasswordDialog::SetVisibleDescription(bool visible) {
+  return description_->setVisible(visible);
+}
+
+bool PasswordDialog::isVisibleDescription() const {
+  return description_->isVisible();
 }
 
 void PasswordDialog::accept() {
