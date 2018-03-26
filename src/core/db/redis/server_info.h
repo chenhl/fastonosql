@@ -114,7 +114,8 @@ namespace fastonosql {
 namespace core {
 namespace redis {
 
-struct ServerInfo : public IServerInfo {
+class ServerInfo : public IServerInfo {
+ public:
   struct Server : IStateField {
     Server();
     explicit Server(const std::string& server_text);

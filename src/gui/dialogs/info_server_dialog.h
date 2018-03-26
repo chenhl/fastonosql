@@ -44,7 +44,7 @@ namespace memcached {
 class ServerInfo;
 }
 namespace redis {
-struct ServerInfo;
+class ServerInfo;
 }
 namespace rocksdb {
 class ServerInfo;

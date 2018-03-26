@@ -163,7 +163,8 @@ namespace fastonosql {
 namespace core {
 namespace pika {
 
-struct ServerInfo : public IServerInfo {
+class ServerInfo : public IServerInfo {
+ public:
   struct Server : IStateField {
     Server();
     explicit Server(const std::string& server_text);
