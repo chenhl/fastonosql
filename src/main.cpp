@@ -29,6 +29,7 @@
 
 #include <common/convert2string.h>
 #include <common/file_system/file.h>
+#include <common/file_system/file_system.h>
 #include <common/file_system/string_path_utils.h>
 #include <common/hash/md5.h>
 #include <common/logger.h>
@@ -80,12 +81,32 @@ const QString trCantVerifyIdentity = QObject::tr(
     "<h4>We can't verify your identity.</h4>"
     "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
 
+const QString trIdentityMissmatch = QObject::tr(
+    "<h4>Missmatch identity.</h4>"
+    "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
+
 const QString trCantSaveIdentity = QObject::tr(
     "<h4>We can't save your identity.</h4>"
     "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
 
 const QString trSignin =
     QObject::tr("<b>Please sign in (use the same credentials like on <a href=\"" PROJECT_DOMAIN "\">website</a>)</b>");
+}  // namespace
+
+common::ErrnoError prepare_to_start(const std::string& runtime_directory_absolute_path) {
+  if (!common::file_system::is_directory_exist(runtime_directory_absolute_path)) {
+    common::ErrnoError err = common::file_system::create_directory(runtime_directory_absolute_path, true);
+    if (err) {
+      return err;
+    }
+  }
+
+  common::ErrnoError err = common::file_system::node_access(runtime_directory_absolute_path);
+  if (err) {
+    return err;
+  }
+
+  return common::ErrnoError();
 }
 
 int main(int argc, char* argv[]) {
@@ -195,7 +216,12 @@ int main(int argc, char* argv[]) {
   if (user_sub_state != fastonosql::proxy::UserInfo::SUBSCRIBED) {
     size_t exec_count = user_info.GetExecCount();
     fastonosql::proxy::user_id_t user_id = user_info.GetUserID();
-    std::string identity_path = settings_manager->GetSettingsDirPath() + IDENTITY_FILE_NAME;
+    const std::string runtime_dir_path = settings_manager->GetSettingsDirPath();  // stabled
+
+    err = prepare_to_start(runtime_dir_path);
+    DCHECK(!err) << "Create runtime directory error: " << err->GetDescription();
+    const std::string identity_path = runtime_dir_path + IDENTITY_FILE_NAME;
+
     if (exec_count == 1 && !common::file_system::is_file_exist(identity_path)) {
       common::file_system::File identity_file;
       err = identity_file.Open(identity_path,
@@ -235,7 +261,7 @@ int main(int argc, char* argv[]) {
       read_file.Close();
 
       if (readed_id != user_info.GetUserID()) {
-        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantVerifyIdentity);
+        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trIdentityMissmatch);
         return EXIT_FAILURE;
       }
     }
