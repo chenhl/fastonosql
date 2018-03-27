@@ -116,6 +116,7 @@ class BuildRequest(object):
             libssh2_cmake_line.append('-DBUILD_EXAMPLES=OFF')
             libssh2_cmake_line.append('-DBUILD_TESTING=OFF')
             libssh2_cmake_line.append('-DOPENSSL_USE_STATIC_LIBS=ON')
+            libssh2_cmake_line.append('-DZLIB_USE_STATIC=ON')
             libssh2_cmake_line.append('-DOPENSSL_ROOT_DIR={0}'.format(prefix_path))
             cmake_policy = run_command.CmakePolicy(print_message)
             make_policy = run_command.CommonPolicy(print_message)
