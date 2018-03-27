@@ -162,7 +162,7 @@ class BuildRequest(object):
             raise ex
 
         make_install = build_system_args
-        #make_install.append('install')
+        make_install.append('install')
         saver.update_progress_message_range(20.0, 79.0, 'Build project')
         try:
             policy = build_system_policy(store)
