@@ -12,9 +12,15 @@
 #define GET_VERSION_METHOD "version"
 #define SEND_STATISTIC_METHOD "statistic"
 #define IS_SUBSCRIBED_METHOD "is_subscribed"
+#define BAN_USER_METHOD "ban_user"
 
+// subs state
 #define SUBSCRIBED_LOGIN_FIELD "email"
 #define SUBSCRIBED_PASSWORD_FIELD "password"
+
+// ban
+#define BAN_USER_LOGIN_FIELD "email"
+#define BAN_USER_COLLISION_FIELD "collision_id"
 
 // statistic
 #define STATISTIC_EMAIL_FIELD "email"
@@ -225,9 +231,9 @@ common::Error GenStatisticRequest(const std::string& login, std::string* request
   req.id = common::protocols::json_rpc::null_json_rpc_id;
   req.method = SEND_STATISTIC_METHOD;
   req.params = std::string(json_object_get_string(stats_json));
+  json_object_put(stats_json);
   common::Error err = common::protocols::json_rpc::MakeJsonRPCRequest(req, &command_json);
   if (err) {
-    json_object_put(stats_json);
     return err;
   }
 
@@ -238,6 +244,41 @@ common::Error GenStatisticRequest(const std::string& login, std::string* request
 }
 
 common::Error ParseSendStatisticResponce(const std::string& data) {
+  if (data.empty()) {
+    return common::make_error_inval();
+  }
+
+  common::protocols::json_rpc::JsonRPCResponce jres;
+  return common::protocols::json_rpc::ParseJsonRPCResponce(data, &jres);
+}
+
+common::Error GenBanUserRequest(const UserInfo& user_info, user_id_t collision_id, std::string* request) {
+  if (!request || !user_info.IsValid() || collision_id.empty()) {
+    return common::make_error_inval();
+  }
+
+  json_object* ban_user_json = NULL;
+  common::protocols::json_rpc::JsonRPCRequest req;
+  req.id = common::protocols::json_rpc::null_json_rpc_id;
+  req.method = BAN_USER_METHOD;
+  json_object* ban_json = json_object_new_object();
+  std::string login = user_info.GetLogin();
+  json_object_object_add(ban_json, BAN_USER_LOGIN_FIELD, json_object_new_string(login.c_str()));
+  json_object_object_add(ban_json, BAN_USER_COLLISION_FIELD, json_object_new_string(collision_id.c_str()));
+  req.params = std::string(json_object_get_string(ban_json));
+  json_object_put(ban_json);
+  common::Error err = common::protocols::json_rpc::MakeJsonRPCRequest(req, &ban_user_json);
+  if (err) {
+    return err;
+  }
+
+  const char* ban_user_json_str = json_object_get_string(ban_user_json);
+  *request = ban_user_json_str;
+  json_object_put(ban_user_json);
+  return common::Error();
+}
+
+common::Error ParseGenBanUserResponce(const std::string& data) {
   if (data.empty()) {
     return common::make_error_inval();
   }

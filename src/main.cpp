@@ -77,8 +77,12 @@ const QString trDoubleUse_1S = QObject::tr(
     "<h4>You trying to use another's trial version. Login: %1 will be banned.</h4>"
     "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
 
+const QString trCantCreateIdentity = QObject::tr(
+    "<h4>We can't create your identity.</h4>"
+    "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
+
 const QString trCantVerifyIdentity = QObject::tr(
-    "<h4>We can't verify your identity.</h4>"
+    "<h4>We can't verify your identity, it is unregistered device (device limitation is: 1).</h4>"
     "Please <a href=\"" PROJECT_DOWNLOAD_LINK "\">subscribe</a> and continue using " PROJECT_NAME_TITLE ".");
 
 const QString trIdentityMissmatch = QObject::tr(
@@ -107,6 +111,55 @@ common::ErrnoError prepare_to_start(const std::string& runtime_directory_absolut
   }
 
   return common::ErrnoError();
+}
+
+common::Error ban_user(const fastonosql::proxy::UserInfo& user, const std::string& collision_id) {
+#if defined(FASTONOSQL)
+  common::net::ClientSocketTcp client(common::net::HostAndPort(FASTONOSQL_HOST, SERVER_REQUESTS_PORT));
+#elif defined(FASTOREDIS)
+  common::net::ClientSocketTcp client(common::net::HostAndPort(FASTOREDIS_HOST, SERVER_REQUESTS_PORT));
+#else
+#error please specify url and port of version information
+#endif
+
+  common::ErrnoError err = client.Connect();
+  if (err) {
+    return common::make_error_from_errno(err);
+  }
+
+  std::string request;
+  common::Error request_err = fastonosql::proxy::GenBanUserRequest(user, collision_id, &request);
+  if (request_err) {
+    return request_err;
+  }
+
+  size_t nwrite;
+  err = client.Write(request, &nwrite);
+  if (err) {
+    common::ErrnoError close_err = client.Close();
+    DCHECK(!close_err) << "Close client error: " << close_err->GetDescription();
+    return common::make_error_from_errno(err);
+  }
+
+  std::string ban_reply;
+  size_t nread = 0;
+  err = client.Read(&ban_reply, 256, &nread);
+  if (err) {
+    common::ErrnoError close_err = client.Close();
+    DCHECK(!close_err) << "Close client error: " << close_err->GetDescription();
+    return common::make_error_from_errno(err);
+  }
+
+  common::Error jerror = fastonosql::proxy::ParseGenBanUserResponce(ban_reply);
+  if (jerror) {
+    common::ErrnoError close_err = client.Close();
+    DCHECK(!close_err) << "Close client error: " << close_err->GetDescription();
+    return jerror;
+  }
+
+  err = client.Close();
+  DCHECK(!err) << "Close client error: " << err->GetDescription();
+  return common::Error();
 }
 
 int main(int argc, char* argv[]) {
@@ -227,7 +280,7 @@ int main(int argc, char* argv[]) {
       err = identity_file.Open(identity_path,
                                common::file_system::File::FLAG_CREATE | common::file_system::File::FLAG_WRITE);
       if (err) {
-        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantVerifyIdentity);
+        QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantCreateIdentity);
         return EXIT_FAILURE;
       }
 
@@ -261,6 +314,7 @@ int main(int argc, char* argv[]) {
       read_file.Close();
 
       if (readed_id != user_info.GetUserID()) {
+        ban_user(user_info, readed_id);
         QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trIdentityMissmatch);
         return EXIT_FAILURE;
       }
