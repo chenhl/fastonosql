@@ -23,6 +23,7 @@
 #include <common/qt/convert2string.h>  // for ConvertToString
 #include <common/utils.h>              // for decode64, encode64
 
+#include <common/file_system/file_system.h>
 #include <common/qt/gui/app_style.h>              // for defStyle
 #include <common/qt/translations/translations.h>  // for defLanguage
 
@@ -49,7 +50,14 @@
 #define AUTOCONNECTDB "auto_connect_db"
 #define FASTVIEWKEYS PREFIX "fast_view_keys"
 #define WINDOW_SETTINGS PREFIX "window_settings"
+#define PYTHON_PATH PREFIX "python_path"
 #define CONFIG_VERSION PREFIX "version"
+
+#ifdef OS_WIN
+#define PYTHON_FILE_NAME "python.exe"
+#else
+#define PYTHON_FILE_NAME "python"
+#endif
 
 namespace {
 
@@ -89,6 +97,7 @@ SettingsManager::SettingsManager()
       auto_open_console_(),
       fast_view_keys_(),
       window_settings_(),
+      python_path_(),
       user_info_() {}
 
 SettingsManager::~SettingsManager() {}
@@ -303,6 +312,14 @@ void SettingsManager::SetWindowSettings(const QByteArray& settings) {
   window_settings_ = settings;
 }
 
+QString SettingsManager::GetPythonPath() const {
+  return python_path_;
+}
+
+void SettingsManager::SetPythonPath(const QString& path) {
+  python_path_ = path;
+}
+
 void SettingsManager::ReloadFromPath(const std::string& path, bool merge) {
   if (path.empty()) {
     return;
@@ -386,6 +403,13 @@ void SettingsManager::ReloadFromPath(const std::string& path, bool merge) {
   auto_connect_db_ = settings.value(AUTOCONNECTDB, true).toBool();
   fast_view_keys_ = settings.value(FASTVIEWKEYS, true).toBool();
   window_settings_ = settings.value(WINDOW_SETTINGS, QByteArray()).toByteArray();
+
+  QString qpython_path;
+  std::string python_path;
+  if (common::file_system::find_file_in_path(PYTHON_FILE_NAME, &python_path) &&
+      common::ConvertFromString(python_path, &qpython_path)) {
+  }
+  python_path_ = settings.value(PYTHON_PATH, qpython_path).toString();
   config_version_ = settings.value(CONFIG_VERSION, PROJECT_VERSION_NUMBER).toUInt();
 }
 
@@ -461,6 +485,7 @@ void SettingsManager::Save() {
   settings.setValue(AUTOCONNECTDB, auto_connect_db_);
   settings.setValue(FASTVIEWKEYS, fast_view_keys_);
   settings.setValue(WINDOW_SETTINGS, window_settings_);
+  settings.setValue(PYTHON_PATH, python_path_);
   settings.setValue(CONFIG_VERSION, config_version_);
 }
 

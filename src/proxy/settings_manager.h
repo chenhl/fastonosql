@@ -107,6 +107,9 @@ class SettingsManager : public common::patterns::Singleton<SettingsManager> {
   QByteArray GetWindowSettings() const;
   void SetWindowSettings(const QByteArray& settings);
 
+  QString GetPythonPath() const;
+  void SetPythonPath(const QString& path);
+
   void ReloadFromPath(const std::string& path, bool merge);
 
   void Load();
@@ -137,6 +140,7 @@ class SettingsManager : public common::patterns::Singleton<SettingsManager> {
   bool auto_connect_db_;
   bool fast_view_keys_;
   QByteArray window_settings_;
+  QString python_path_;
 
   // runtime settings
   UserInfo user_info_;

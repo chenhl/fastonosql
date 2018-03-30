@@ -31,6 +31,8 @@ class QLineEdit;  // lines 27-27
 namespace fastonosql {
 namespace gui {
 
+class IPathWidget;
+
 class PreferencesDialog : public QDialog {
   Q_OBJECT
  public:
@@ -47,6 +49,8 @@ class PreferencesDialog : public QDialog {
   virtual void changeEvent(QEvent* ev) override;
 
  private:
+  QWidget* createMainTab();
+  QWidget* createExternalTab();
   void retranslateUi();
 
   // controls in profile_box
@@ -78,6 +82,9 @@ class PreferencesDialog : public QDialog {
   QCheckBox* auto_open_console_;
   QCheckBox* auto_connect_db_;
   QCheckBox* fast_view_keys_;
+
+  QGroupBox* external_box_;
+  IPathWidget* python_path_widget_;
 };
 
 }  // namespace gui
