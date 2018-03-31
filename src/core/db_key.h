@@ -46,7 +46,7 @@ class KeyString {
   enum KeyType { TEXT_KEY = 0, BINARY_KEY };
 
   KeyString();
-  explicit KeyString(const string_key_t& key_data);
+  KeyString(const string_key_t& key_data);
 
   KeyType GetType() const;
 

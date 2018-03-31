@@ -18,7 +18,8 @@
 
 #pragma once
 
-#include <common/sprintf.h>
+#include <common/file_system/file.h>
+#include <common/file_system/string_path_utils.h>
 
 #include "core/connection_commands_traits.h"
 #include "core/internal/cdb_connection_client.h"
@@ -80,6 +81,11 @@ class CDBConnection : public DBConnection<NConnection, Config, connection_type>,
   common::Error ModuleLoad(const ModuleInfo& module) WARN_UNUSED_RESULT;                   // nvi
   common::Error ModuleUnLoad(const ModuleInfo& module) WARN_UNUSED_RESULT;                 // nvi
   common::Error Quit() WARN_UNUSED_RESULT;                                                 // nvi
+  common::Error JsonDump(uint64_t cursor_in,
+                         const std::string& pattern,
+                         uint64_t limit,
+                         const common::file_system::ascii_file_string_path& path,
+                         uint64_t* cursor_out) WARN_UNUSED_RESULT;  // nvi
 
  protected:
   common::Error GenerateError(const std::string& cmd, const std::string& descr) WARN_UNUSED_RESULT {
@@ -115,6 +121,11 @@ class CDBConnection : public DBConnection<NConnection, Config, connection_type>,
   virtual common::Error ModuleLoadImpl(const ModuleInfo& module);    // optional
   virtual common::Error ModuleUnLoadImpl(const ModuleInfo& module);  // optional
   virtual common::Error QuitImpl() = 0;
+  virtual common::Error JsonDumpImpl(uint64_t cursor_in,
+                                     const std::string& pattern,
+                                     uint64_t limit,
+                                     const common::file_system::ascii_file_string_path& path,
+                                     uint64_t* cursor_out);  // optional;
 };
 
 template <typename NConnection, typename Config, connectionTypes ContType>
@@ -553,6 +564,38 @@ common::Error CDBConnection<NConnection, Config, ContType>::Quit() {
 }
 
 template <typename NConnection, typename Config, connectionTypes ContType>
+common::Error CDBConnection<NConnection, Config, ContType>::JsonDump(
+    uint64_t cursor_in,
+    const std::string& pattern,
+    uint64_t limit,
+    const common::file_system::ascii_file_string_path& path,
+    uint64_t* cursor_out) {
+  if (!cursor_out) {
+    DNOTREACHED();
+    return common::make_error_inval();
+  }
+
+  std::string dir = path.GetDirectory();
+  if (!common::file_system::is_directory_exist(dir)) {
+    const std::string error_msg =
+        common::MemSPrintf("Please create directory: %s for " DB_JSONDUMP_COMMAND " command.", dir);
+    return common::make_error(error_msg);
+  }
+
+  common::Error err = CDBConnection<NConnection, Config, ContType>::TestIsAuthenticated();
+  if (err) {
+    return err;
+  }
+
+  err = JsonDumpImpl(cursor_in, pattern, limit, path, cursor_out);
+  if (err) {
+    return err;
+  }
+
+  return common::Error();
+}
+
+template <typename NConnection, typename Config, connectionTypes ContType>
 common::Error CDBConnection<NConnection, Config, ContType>::SetTTLImpl(const NKey& key, ttl_t ttl) {
   UNUSED(key);
   UNUSED(ttl);
@@ -608,6 +651,57 @@ common::Error CDBConnection<NConnection, Config, ContType>::CreateDBImpl(const s
       common::MemSPrintf("Sorry, but now " PROJECT_NAME_TITLE " for %s not supported " DB_CREATEDB_COMMAND " commands.",
                          connection_traits_class::GetDBName());
   return common::make_error(error_msg);
+}
+
+template <typename NConnection, typename Config, connectionTypes ContType>
+common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
+    uint64_t cursor_in,
+    const std::string& pattern,
+    uint64_t limit,
+    const common::file_system::ascii_file_string_path& path,
+    uint64_t* cursor_out) {
+  common::file_system::CloseOnExitANSIFile fl;
+  common::ErrnoError errn = fl.Open(path, "wb");
+  if (errn) {
+    return common::make_error_from_errno(errn);
+  }
+
+  bool is_wrote = fl.Write("{[\n");
+  if (!is_wrote) {
+    return common::make_error(common::MemSPrintf("Failed to write start of json file: %s.", path.GetPath()));
+  }
+
+  std::vector<std::string> keys;
+  common::Error err = Scan(cursor_in, pattern, limit, &keys, cursor_out);
+  if (err) {
+    return err;
+  }
+
+  for (size_t i = 0; i < keys.size(); ++i) {
+    KeyString key_str = keys[i];
+    NKey key(key_str);
+    NDbKValue loaded_key;
+    err = GetImpl(key, &loaded_key);
+    if (err) {
+      return err;
+    }
+
+    if (i == keys.size() - 1) {
+      is_wrote = fl.WriteFormated("{\"%s\":\"%s\"}\n", keys[i], loaded_key.GetValueString());
+    } else {
+      is_wrote = fl.WriteFormated("{\"%s\":\"%s\"},\n", keys[i], loaded_key.GetValueString());
+    }
+
+    if (!is_wrote) {
+      return common::make_error(common::MemSPrintf("Failed to write entry of json file: %s.", path.GetPath()));
+    }
+  }
+
+  is_wrote = fl.Write("]}\n");
+  if (!is_wrote) {
+    return common::make_error(common::MemSPrintf("Failed to write end of json file: %s.", path.GetPath()));
+  }
+  return common::Error();
 }
 
 }  // namespace internal

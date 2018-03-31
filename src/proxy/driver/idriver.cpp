@@ -248,26 +248,25 @@ void IDriver::customEvent(QEvent* event) {
 
 void IDriver::timerEvent(QTimerEvent* event) {
   if (timer_info_id_ == event->timerId() && settings_->IsHistoryEnabled() && IsConnected()) {
+    std::string path = settings_->GetLoggingPath();
     if (!log_file_) {
-      std::string path = settings_->GetLoggingPath();
       std::string dir = common::file_system::get_dir_path(path);
       common::ErrnoError err = common::file_system::create_directory(dir, true);
       if (err) {
       }
       if (common::file_system::is_directory(dir) == common::SUCCESS) {
-        common::file_system::ascii_string_path p(path);
-        log_file_ = new common::file_system::ANSIFile(p);
+        log_file_ = new common::file_system::ANSIFile;
       }
     }
 
-    if (log_file_ && !log_file_->IsOpened()) {
-      common::ErrnoError err = log_file_->Open("ab+");
+    if (log_file_ && !log_file_->IsOpen()) {
+      common::ErrnoError err = log_file_->Open(path, "ab+");
       if (err) {
         DNOTREACHED();
       }
     }
 
-    if (log_file_ && log_file_->IsOpened()) {
+    if (log_file_ && log_file_->IsOpen()) {
       common::time64_t time = common::time::current_mstime();
       std::string stamp = createStamp(time);
       core::IServerInfo* info = nullptr;
@@ -504,9 +503,8 @@ void IDriver::HandleLoadServerInfoHistoryEvent(events::ServerInfoHistoryRequestE
   events::ServerInfoHistoryResponceEvent::value_type res(ev->value());
 
   std::string path = settings_->GetLoggingPath();
-  common::file_system::ascii_string_path p(path);
-  common::file_system::ANSIFile read_file(p);
-  common::ErrnoError err = read_file.Open("rb");
+  common::file_system::ANSIFile read_file;
+  common::ErrnoError err = read_file.Open(path, "rb");
   if (err) {
     res.setErrorInfo(common::make_error_from_errno(err));
   } else {
@@ -552,7 +550,7 @@ void IDriver::HandleClearServerHistoryEvent(events::ClearServerHistoryRequestEve
 
   bool ret = false;
 
-  if (log_file_ && log_file_->IsOpened()) {
+  if (log_file_ && log_file_->IsOpen()) {
     common::ErrnoError err = log_file_->Truncate(0);
     ret = err ? false : true;
   } else {

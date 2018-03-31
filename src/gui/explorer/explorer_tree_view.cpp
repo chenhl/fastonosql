@@ -231,7 +231,8 @@ void ExplorerTreeView::showContextMenu(const QPoint& point) {
     bool is_connected = server->IsConnected();
     bool is_redis_compatible = core::IsRedisCompatible(server->GetType());
 
-    bool is_cluster_member = dynamic_cast<ExplorerClusterItem*>(node->parent()) != nullptr;  // +
+    common::qt::gui::TreeItem* par = node->parent();
+    bool is_cluster_member = dynamic_cast<ExplorerClusterItem*>(par) != nullptr;  // +
 
     QAction* loadDatabaseAction = new QAction(translations::trLoadDataBases, this);
     VERIFY(connect(loadDatabaseAction, &QAction::triggered, this, &ExplorerTreeView::loadDatabases));

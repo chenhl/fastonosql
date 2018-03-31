@@ -297,9 +297,8 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
       }
     } else {
-      common::file_system::ascii_string_path p(identity_path);
-      common::file_system::ANSIFile read_file(p);
-      common::ErrnoError err = read_file.Open("rb");
+      common::file_system::CloseOnExitANSIFile read_file;
+      common::ErrnoError err = read_file.Open(identity_path, "rb");
       if (err) {
         QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantVerifyIdentity);
         return EXIT_FAILURE;
@@ -310,8 +309,6 @@ int main(int argc, char* argv[]) {
         QMessageBox::critical(nullptr, fastonosql::translations::trTrial, trCantVerifyIdentity);
         return EXIT_FAILURE;
       }
-
-      read_file.Close();
 
       if (readed_id != user_info.GetUserID()) {
         ban_user(user_info, readed_id);

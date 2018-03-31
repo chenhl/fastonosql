@@ -418,16 +418,16 @@ void MainWindow::importConnection() {
   std::string tmp = proxy::SettingsManager::GetSettingsFilePath() + ".tmp";
 
   common::file_system::ascii_string_path wp(tmp);
-  common::file_system::ANSIFile writeFile(wp);
-  common::ErrnoError err = writeFile.Open("wb");
+  common::file_system::ANSIFile writeFile;
+  common::ErrnoError err = writeFile.Open(wp, "wb");
   if (err) {
     QMessageBox::critical(this, translations::trError, trImportSettingsFailed);
     return;
   }
 
   common::file_system::ascii_string_path rp(common::ConvertToString(filepathR));
-  common::file_system::ANSIFile readFile(rp);
-  err = readFile.Open("rb");
+  common::file_system::ANSIFile readFile;
+  err = readFile.Open(rp, "rb");
   if (err) {
     writeFile.Close();
     err = common::file_system::remove_file(wp.GetPath());
@@ -497,16 +497,16 @@ void MainWindow::exportConnection() {
   }
 
   common::file_system::ascii_string_path wp(common::ConvertToString(filepathW));
-  common::file_system::ANSIFile writeFile(wp);
-  common::ErrnoError err = writeFile.Open("wb");
+  common::file_system::ANSIFile writeFile;
+  common::ErrnoError err = writeFile.Open(wp, "wb");
   if (err) {
     QMessageBox::critical(this, translations::trError, trExportSettingsFailed);
     return;
   }
 
   common::file_system::ascii_string_path rp(proxy::SettingsManager::GetSettingsFilePath());
-  common::file_system::ANSIFile readFile(rp);
-  err = readFile.Open("rb");
+  common::file_system::ANSIFile readFile;
+  err = readFile.Open(rp, "rb");
   if (err) {
     writeFile.Close();
     common::ErrnoError err = common::file_system::remove_file(wp.GetPath());

@@ -19,6 +19,7 @@
 #pragma once
 
 #include <common/convert2string.h>
+#include <common/file_system/path.h>
 
 #include "core/global.h"
 
@@ -51,6 +52,7 @@ struct ApiTraits {
   static common::Error ModuleUnLoad(CommandHandler* handler, commands_args_t argv, FastoObject* out);
   static common::Error Quit(CommandHandler* handler, commands_args_t argv, FastoObject* out);
   static common::Error ConfigGet(internal::CommandHandler* handler, commands_args_t argv, FastoObject* out);
+  static common::Error JsonDump(CommandHandler* handler, commands_args_t argv, FastoObject* out);
 };
 
 template <class CDBConnection>
@@ -420,6 +422,39 @@ common::Error ApiTraits<CDBConnection>::ConfigGet(internal::CommandHandler* hand
   common::ArrayValue* arr = new common::ArrayValue;
   arr->AppendStrings(dbs);
   FastoObject* child = new FastoObject(out, arr, cdb->GetDelimiter());
+  out->AddChildren(child);
+  return common::Error();
+}
+
+template <class CDBConnection>
+common::Error ApiTraits<CDBConnection>::JsonDump(CommandHandler* handler, commands_args_t argv, FastoObject* out) {
+  uint32_t cursor_in;
+  const size_t argc = argv.size();
+  if (argc < 3 || !common::ConvertFromString(argv[0], &cursor_in)) {
+    return common::make_error_inval();
+  }
+
+  if (common::file_system::is_relative_path(argv[2])) {
+    return common::make_error("Please use absolute path!");
+  }
+
+  common::file_system::ascii_file_string_path path(argv[2]);
+
+  std::string pattern = argc >= 5 ? argv[4] : ALL_KEYS_PATTERNS;
+  uint64_t count_keys = NO_KEYS_LIMIT;
+  if (argc == 7 && !common::ConvertFromString(argv[6], &count_keys)) {
+    return common::make_error_inval();
+  }
+
+  uint64_t cursor_out = 0;
+  CDBConnection* cdb = static_cast<CDBConnection*>(handler);
+  common::Error err = cdb->JsonDump(cursor_in, pattern, count_keys, path, &cursor_out);
+  if (err) {
+    return err;
+  }
+
+  common::FundamentalValue* val = common::Value::CreateIntegerValue(cursor_out);
+  FastoObject* child = new FastoObject(out, val, cdb->GetDelimiter());
   out->AddChildren(child);
   return common::Error();
 }
