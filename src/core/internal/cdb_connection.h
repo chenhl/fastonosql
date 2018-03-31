@@ -660,7 +660,7 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
     uint64_t limit,
     const common::file_system::ascii_file_string_path& path,
     uint64_t* cursor_out) {
-  common::file_system::CloseOnExitANSIFile fl;
+  common::file_system::ANSIFile fl;
   common::ErrnoError errn = fl.Open(path, "wb");
   if (errn) {
     return common::make_error_from_errno(errn);
@@ -668,6 +668,7 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
 
   bool is_wrote = fl.Write("{[\n");
   if (!is_wrote) {
+    fl.Close();
     return common::make_error(common::MemSPrintf("Failed to write start of json file: %s.", path.GetPath()));
   }
 
@@ -683,6 +684,7 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
     NDbKValue loaded_key;
     err = GetImpl(key, &loaded_key);
     if (err) {
+      fl.Close();
       return err;
     }
 
@@ -693,12 +695,14 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
     }
 
     if (!is_wrote) {
+      fl.Close();
       return common::make_error(common::MemSPrintf("Failed to write entry of json file: %s.", path.GetPath()));
     }
   }
 
   is_wrote = fl.Write("]}\n");
   if (!is_wrote) {
+    fl.Close();
     return common::make_error(common::MemSPrintf("Failed to write end of json file: %s.", path.GetPath()));
   }
   return common::Error();
