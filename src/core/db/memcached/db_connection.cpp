@@ -92,12 +92,12 @@ struct hacked_memcached_instance_st {
 namespace {
 
 struct KeysHolder {
-  KeysHolder(const std::string& key_start, const std::string& key_end, uint64_t limit, std::vector<std::string>* r)
+  KeysHolder(const std::string& key_start, const std::string& key_end, fastonosql::core::keys_limit_t limit, std::vector<std::string>* r)
       : key_start(key_start), key_end(key_end), limit(limit), r(r) {}
 
   const std::string key_start;
   const std::string key_end;
-  const uint64_t limit;
+  const fastonosql::core::keys_limit_t limit;
   std::vector<std::string>* r;
 
   memcached_return_t addKey(const char* key, size_t key_length, time_t exp) {
@@ -863,11 +863,11 @@ common::Error DBConnection::VersionServer() {
   return CheckResultCommand("VERSION", memcached_version(connection_.handle_));
 }
 
-common::Error DBConnection::ScanImpl(uint64_t cursor_in,
+common::Error DBConnection::ScanImpl(cursor_t cursor_in,
                                      const std::string& pattern,
-                                     uint64_t count_keys,
+                                     keys_limit_t count_keys,
                                      std::vector<std::string>* keys_out,
-                                     uint64_t* cursor_out) {
+                                     cursor_t* cursor_out) {
   ScanHolder hld(cursor_in, pattern, count_keys);
   memcached_dump_fn func[1] = {0};
   func[0] = memcached_dump_scan_callback;
@@ -884,7 +884,7 @@ common::Error DBConnection::ScanImpl(uint64_t cursor_in,
 
 common::Error DBConnection::KeysImpl(const std::string& key_start,
                                      const std::string& key_end,
-                                     uint64_t limit,
+                                     keys_limit_t limit,
                                      std::vector<std::string>* ret) {
   KeysHolder hld(key_start, key_end, limit, ret);
   memcached_dump_fn func[1] = {0};
@@ -894,7 +894,7 @@ common::Error DBConnection::KeysImpl(const std::string& key_start,
 
 common::Error DBConnection::DBkcountImpl(size_t* size) {
   std::vector<std::string> ret;
-  KeysHolder hld("a", "z", UINT64_MAX, &ret);
+  KeysHolder hld("a", "z", NO_KEYS_LIMIT, &ret);
   memcached_dump_fn func[1] = {0};
   func[0] = memcached_dump_keys_callback;
   common::Error err =

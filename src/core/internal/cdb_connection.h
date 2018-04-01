@@ -32,7 +32,7 @@ namespace fastonosql {
 namespace core {
 namespace internal {
 
-command_buffer_t GetKeysPattern(uint64_t cursor_in, const std::string& pattern, uint64_t count_keys);  // for SCAN
+command_buffer_t GetKeysPattern(cursor_t cursor_in, const std::string& pattern, keys_limit_t count_keys);  // for SCAN
 
 // for all commands:
 // 1) test input
@@ -57,14 +57,14 @@ class CDBConnection : public DBConnection<NConnection, Config, connection_type>,
   virtual std::string GetCurrentDBName() const;                                      //
   common::Error Help(commands_args_t argv, std::string* answer) WARN_UNUSED_RESULT;  //
 
-  common::Error Scan(uint64_t cursor_in,
+  common::Error Scan(cursor_t cursor_in,
                      const std::string& pattern,
-                     uint64_t count_keys,
+                     keys_limit_t count_keys,
                      std::vector<std::string>* keys_out,
-                     uint64_t* cursor_out) WARN_UNUSED_RESULT;  // nvi
+                     cursor_t* cursor_out) WARN_UNUSED_RESULT;  // nvi
   common::Error Keys(const std::string& key_start,
                      const std::string& key_end,
-                     uint64_t limit,
+                     keys_limit_t limit,
                      std::vector<std::string>* ret) WARN_UNUSED_RESULT;                    // nvi
   common::Error DBkcount(size_t* size) WARN_UNUSED_RESULT;                                 // nvi
   common::Error FlushDB() WARN_UNUSED_RESULT;                                              // nvi
@@ -81,11 +81,11 @@ class CDBConnection : public DBConnection<NConnection, Config, connection_type>,
   common::Error ModuleLoad(const ModuleInfo& module) WARN_UNUSED_RESULT;                   // nvi
   common::Error ModuleUnLoad(const ModuleInfo& module) WARN_UNUSED_RESULT;                 // nvi
   common::Error Quit() WARN_UNUSED_RESULT;                                                 // nvi
-  common::Error JsonDump(uint64_t cursor_in,
+  common::Error JsonDump(cursor_t cursor_in,
                          const std::string& pattern,
-                         uint64_t limit,
+                         keys_limit_t limit,
                          const common::file_system::ascii_file_string_path& path,
-                         uint64_t* cursor_out) WARN_UNUSED_RESULT;  // nvi
+                         cursor_t* cursor_out) WARN_UNUSED_RESULT;  // nvi
 
  protected:
   common::Error GenerateError(const std::string& cmd, const std::string& descr) WARN_UNUSED_RESULT {
@@ -95,14 +95,14 @@ class CDBConnection : public DBConnection<NConnection, Config, connection_type>,
   CDBConnectionClient* client_;
 
  private:
-  virtual common::Error ScanImpl(uint64_t cursor_in,
+  virtual common::Error ScanImpl(cursor_t cursor_in,
                                  const std::string& pattern,
-                                 uint64_t count_keys,
+                                 keys_limit_t count_keys,
                                  std::vector<std::string>* keys_out,
-                                 uint64_t* cursor_out) = 0;
+                                 cursor_t* cursor_out) = 0;
   virtual common::Error KeysImpl(const std::string& key_start,
                                  const std::string& key_end,
-                                 uint64_t limit,
+                                 keys_limit_t limit,
                                  std::vector<std::string>* ret) = 0;
   virtual common::Error DBkcountImpl(size_t* size) = 0;
   virtual common::Error FlushDBImpl() = 0;
@@ -121,11 +121,11 @@ class CDBConnection : public DBConnection<NConnection, Config, connection_type>,
   virtual common::Error ModuleLoadImpl(const ModuleInfo& module);    // optional
   virtual common::Error ModuleUnLoadImpl(const ModuleInfo& module);  // optional
   virtual common::Error QuitImpl() = 0;
-  virtual common::Error JsonDumpImpl(uint64_t cursor_in,
+  virtual common::Error JsonDumpImpl(cursor_t cursor_in,
                                      const std::string& pattern,
-                                     uint64_t limit,
+                                     keys_limit_t limit,
                                      const common::file_system::ascii_file_string_path& path,
-                                     uint64_t* cursor_out);  // optional;
+                                     cursor_t* cursor_out);  // optional;
 };
 
 template <typename NConnection, typename Config, connectionTypes ContType>
@@ -181,11 +181,11 @@ common::Error CDBConnection<NConnection, Config, ContType>::Help(commands_args_t
 }
 
 template <typename NConnection, typename Config, connectionTypes ContType>
-common::Error CDBConnection<NConnection, Config, ContType>::Scan(uint64_t cursor_in,
+common::Error CDBConnection<NConnection, Config, ContType>::Scan(cursor_t cursor_in,
                                                                  const std::string& pattern,
-                                                                 uint64_t count_keys,
+                                                                 keys_limit_t count_keys,
                                                                  std::vector<std::string>* keys_out,
-                                                                 uint64_t* cursor_out) {
+                                                                 cursor_t* cursor_out) {
   if (!keys_out || !cursor_out) {
     DNOTREACHED();
     return common::make_error_inval();
@@ -207,7 +207,7 @@ common::Error CDBConnection<NConnection, Config, ContType>::Scan(uint64_t cursor
 template <typename NConnection, typename Config, connectionTypes ContType>
 common::Error CDBConnection<NConnection, Config, ContType>::Keys(const std::string& key_start,
                                                                  const std::string& key_end,
-                                                                 uint64_t limit,
+                                                                 keys_limit_t limit,
                                                                  std::vector<std::string>* ret) {
   if (!ret) {
     DNOTREACHED();
@@ -565,11 +565,11 @@ common::Error CDBConnection<NConnection, Config, ContType>::Quit() {
 
 template <typename NConnection, typename Config, connectionTypes ContType>
 common::Error CDBConnection<NConnection, Config, ContType>::JsonDump(
-    uint64_t cursor_in,
+    cursor_t cursor_in,
     const std::string& pattern,
-    uint64_t limit,
+    keys_limit_t limit,
     const common::file_system::ascii_file_string_path& path,
-    uint64_t* cursor_out) {
+    cursor_t* cursor_out) {
   if (!cursor_out) {
     DNOTREACHED();
     return common::make_error_inval();
@@ -655,18 +655,18 @@ common::Error CDBConnection<NConnection, Config, ContType>::CreateDBImpl(const s
 
 template <typename NConnection, typename Config, connectionTypes ContType>
 common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
-    uint64_t cursor_in,
+    cursor_t cursor_in,
     const std::string& pattern,
-    uint64_t limit,
+    keys_limit_t limit,
     const common::file_system::ascii_file_string_path& path,
-    uint64_t* cursor_out) {
+    cursor_t* cursor_out) {
   common::file_system::ANSIFile fl;
   common::ErrnoError errn = fl.Open(path, "wb");
   if (errn) {
     return common::make_error_from_errno(errn);
   }
 
-  bool is_wrote = fl.Write("{[\n");
+  bool is_wrote = fl.Write("[{\n");
   if (!is_wrote) {
     fl.Close();
     return common::make_error(common::MemSPrintf("Failed to write start of json file: %s.", path.GetPath()));
@@ -689,9 +689,9 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
     }
 
     if (i == keys.size() - 1) {
-      is_wrote = fl.WriteFormated("{\"%s\":\"%s\"}\n", keys[i], loaded_key.GetValueString());
+      is_wrote = fl.WriteFormated("\"%s\":\"%s\"\n", key_str.GetHumanReadable(), loaded_key.GetValueString());
     } else {
-      is_wrote = fl.WriteFormated("{\"%s\":\"%s\"},\n", keys[i], loaded_key.GetValueString());
+      is_wrote = fl.WriteFormated("\"%s\":\"%s\",\n", key_str.GetHumanReadable(), loaded_key.GetValueString());
     }
 
     if (!is_wrote) {
@@ -700,11 +700,13 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
     }
   }
 
-  is_wrote = fl.Write("]}\n");
+  is_wrote = fl.Write("}]\n");
   if (!is_wrote) {
     fl.Close();
     return common::make_error(common::MemSPrintf("Failed to write end of json file: %s.", path.GetPath()));
   }
+
+  fl.Close();
   return common::Error();
 }
 

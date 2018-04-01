@@ -24,10 +24,13 @@
 #define ALL_COMMANDS "*"
 #define ALL_KEYS_PATTERNS "*"
 #define ALL_PUBSUB_CHANNELS "*"
-#define NO_KEYS_LIMIT UINT64_MAX
+#define NO_KEYS_LIMIT UINT32_MAX
 
 namespace fastonosql {
 namespace core {
+
+typedef uint32_t keys_limit_t;
+typedef keys_limit_t cursor_t;
 
 enum connectionTypes {
   REDIS = 0,

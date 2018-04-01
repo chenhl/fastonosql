@@ -76,19 +76,19 @@ template <class CDBConnection>
 common::Error ApiTraits<CDBConnection>::Scan(internal::CommandHandler* handler,
                                              commands_args_t argv,
                                              FastoObject* out) {
-  uint32_t cursor_in;
+  cursor_t cursor_in;
   if (!common::ConvertFromString(argv[0], &cursor_in)) {
     return common::make_error_inval();
   }
 
   const size_t argc = argv.size();
   std::string pattern = argc >= 3 ? argv[2] : ALL_KEYS_PATTERNS;
-  uint64_t count_keys = NO_KEYS_LIMIT;
+  cursor_t count_keys = NO_KEYS_LIMIT;
   if (argc >= 5 && !common::ConvertFromString(argv[4], &count_keys)) {
     return common::make_error_inval();
   }
 
-  uint64_t cursor_out = 0;
+  cursor_t cursor_out = 0;
   std::vector<std::string> keys_out;
   CDBConnection* cdb = static_cast<CDBConnection*>(handler);
 
@@ -120,7 +120,7 @@ common::Error ApiTraits<CDBConnection>::Keys(internal::CommandHandler* handler,
                                              FastoObject* out) {
   CDBConnection* cdb = static_cast<CDBConnection*>(handler);
 
-  uint64_t limit;
+  cursor_t limit;
   if (!common::ConvertFromString(argv[2], &limit)) {
     return common::make_error_inval();
   }
@@ -428,7 +428,7 @@ common::Error ApiTraits<CDBConnection>::ConfigGet(internal::CommandHandler* hand
 
 template <class CDBConnection>
 common::Error ApiTraits<CDBConnection>::JsonDump(CommandHandler* handler, commands_args_t argv, FastoObject* out) {
-  uint32_t cursor_in;
+  cursor_t cursor_in;
   const size_t argc = argv.size();
   if (argc < 3 || !common::ConvertFromString(argv[0], &cursor_in)) {
     return common::make_error_inval();
@@ -441,12 +441,12 @@ common::Error ApiTraits<CDBConnection>::JsonDump(CommandHandler* handler, comman
   common::file_system::ascii_file_string_path path(argv[2]);
 
   std::string pattern = argc >= 5 ? argv[4] : ALL_KEYS_PATTERNS;
-  uint64_t count_keys = NO_KEYS_LIMIT;
+  cursor_t count_keys = NO_KEYS_LIMIT;
   if (argc == 7 && !common::ConvertFromString(argv[6], &count_keys)) {
     return common::make_error_inval();
   }
 
-  uint64_t cursor_out = 0;
+  cursor_t cursor_out = 0;
   CDBConnection* cdb = static_cast<CDBConnection*>(handler);
   common::Error err = cdb->JsonDump(cursor_in, pattern, count_keys, path, &cursor_out);
   if (err) {

@@ -1472,11 +1472,11 @@ common::Error DBConnection::ConfigGetDatabasesImpl(std::vector<std::string>* dbs
   return common::Error();
 }
 
-common::Error DBConnection::ScanImpl(uint64_t cursor_in,
+common::Error DBConnection::ScanImpl(cursor_t cursor_in,
                                      const std::string& pattern,
-                                     uint64_t count_keys,
+                                     keys_limit_t count_keys,
                                      std::vector<std::string>* keys_out,
-                                     uint64_t* cursor_out) {
+                                     cursor_t* cursor_out) {
   std::vector<std::string> ret;
   common::Error err =
       CheckResultCommand(DB_SCAN_COMMAND, connection_.handle_->keys(std::string(), std::string(), count_keys, &ret));
@@ -1510,7 +1510,7 @@ common::Error DBConnection::ScanImpl(uint64_t cursor_in,
 
 common::Error DBConnection::KeysImpl(const std::string& key_start,
                                      const std::string& key_end,
-                                     uint64_t limit,
+                                     keys_limit_t limit,
                                      std::vector<std::string>* ret) {
   return CheckResultCommand(DB_KEYS_COMMAND, connection_.handle_->keys(key_start, key_end, limit, ret));
 }

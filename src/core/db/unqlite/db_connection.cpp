@@ -360,11 +360,11 @@ common::Error DBConnection::GetInner(key_t key, std::string* ret_val) {
                                                       unqlite_data_callback, ret_val));
 }
 
-common::Error DBConnection::ScanImpl(uint64_t cursor_in,
+common::Error DBConnection::ScanImpl(cursor_t cursor_in,
                                      const std::string& pattern,
-                                     uint64_t count_keys,
+                                     keys_limit_t count_keys,
                                      std::vector<std::string>* keys_out,
-                                     uint64_t* cursor_out) {
+                                     cursor_t* cursor_out) {
   unqlite_kv_cursor* pCur; /* Cursor handle */
   common::Error err = CheckResultCommand(DB_SCAN_COMMAND, unqlite_kv_cursor_init(connection_.handle_, &pCur));
   if (err) {
@@ -406,7 +406,7 @@ common::Error DBConnection::ScanImpl(uint64_t cursor_in,
 
 common::Error DBConnection::KeysImpl(const std::string& key_start,
                                      const std::string& key_end,
-                                     uint64_t limit,
+                                     keys_limit_t limit,
                                      std::vector<std::string>* ret) { /* Allocate a new cursor instance */
   unqlite_kv_cursor* pCur;                                            /* Cursor handle */
   common::Error err = CheckResultCommand(DB_KEYS_COMMAND, unqlite_kv_cursor_init(connection_.handle_, &pCur));

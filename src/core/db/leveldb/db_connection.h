@@ -51,14 +51,14 @@ class DBConnection : public core::internal::CDBConnection<NativeConnection, Conf
   common::Error SetInner(key_t key, const std::string& value) WARN_UNUSED_RESULT;
   common::Error GetInner(key_t key, std::string* ret_val) WARN_UNUSED_RESULT;
 
-  virtual common::Error ScanImpl(uint64_t cursor_in,
+  virtual common::Error ScanImpl(cursor_t cursor_in,
                                  const std::string& pattern,
-                                 uint64_t count_keys,
+                                 keys_limit_t count_keys,
                                  std::vector<std::string>* keys_out,
-                                 uint64_t* cursor_out) override;
+                                 cursor_t* cursor_out) override;
   virtual common::Error KeysImpl(const std::string& key_start,
                                  const std::string& key_end,
-                                 uint64_t limit,
+                                 cursor_t limit,
                                  std::vector<std::string>* ret) override;
   virtual common::Error DBkcountImpl(size_t* size) override;
   virtual common::Error FlushDBImpl() override;

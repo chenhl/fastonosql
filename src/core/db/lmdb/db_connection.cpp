@@ -593,11 +593,11 @@ common::Error DBConnection::DelInner(key_t key) {
   return CheckResultCommand(DB_DELETE_KEY_COMMAND, mdb_txn_commit(txn));
 }
 
-common::Error DBConnection::ScanImpl(uint64_t cursor_in,
+common::Error DBConnection::ScanImpl(cursor_t cursor_in,
                                      const std::string& pattern,
-                                     uint64_t count_keys,
+                                     keys_limit_t count_keys,
                                      std::vector<std::string>* keys_out,
-                                     uint64_t* cursor_out) {
+                                     cursor_t* cursor_out) {
   MDB_cursor* cursor = NULL;
   MDB_txn* txn = NULL;
   common::Error err =
@@ -642,7 +642,7 @@ common::Error DBConnection::ScanImpl(uint64_t cursor_in,
 
 common::Error DBConnection::KeysImpl(const std::string& key_start,
                                      const std::string& key_end,
-                                     uint64_t limit,
+                                     keys_limit_t limit,
                                      std::vector<std::string>* ret) {
   MDB_cursor* cursor = NULL;
   MDB_txn* txn = NULL;

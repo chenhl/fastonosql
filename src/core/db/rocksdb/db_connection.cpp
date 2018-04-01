@@ -625,11 +625,11 @@ common::Error DBConnection::DelInner(key_t key) {
   return CheckResultCommand(DB_DELETE_KEY_COMMAND, connection_.handle_->Delete(wo, key_slice));
 }
 
-common::Error DBConnection::ScanImpl(uint64_t cursor_in,
+common::Error DBConnection::ScanImpl(cursor_t cursor_in,
                                      const std::string& pattern,
-                                     uint64_t count_keys,
+                                     keys_limit_t count_keys,
                                      std::vector<std::string>* keys_out,
-                                     uint64_t* cursor_out) {
+                                     cursor_t* cursor_out) {
   ::rocksdb::ReadOptions ro;
   ::rocksdb::Iterator* it = connection_.handle_->NewIterator(ro);  // keys(key_start, key_end, limit, ret);
   uint64_t offset_pos = cursor_in;
@@ -666,7 +666,7 @@ common::Error DBConnection::ScanImpl(uint64_t cursor_in,
 
 common::Error DBConnection::KeysImpl(const std::string& key_start,
                                      const std::string& key_end,
-                                     uint64_t limit,
+                                     keys_limit_t limit,
                                      std::vector<std::string>* ret) {
   ::rocksdb::ReadOptions ro;
   ::rocksdb::Iterator* it = connection_.handle_->NewIterator(ro);  // keys(key_start, key_end, limit, ret);
