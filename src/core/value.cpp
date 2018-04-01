@@ -312,7 +312,7 @@ bool is_json(const std::string& data) {
     return false;
   }
 
-  return data[0] == '{' && data[data.size() - 1] == '}';
+  return data[0] == '{' && data[data.size() - 1] == '}' || data[0] == '[' && data[data.size() - 1] == ']';
 }
 
 std::string hex_string(const common::buffer_t& value) {

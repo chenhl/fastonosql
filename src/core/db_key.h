@@ -39,7 +39,7 @@ COMPILE_ASSERT(std::numeric_limits<ttl_t>::max() >= EXPIRED_TTL && EXPIRED_TTL >
 
 typedef command_buffer_t string_key_t;
 
-bool IsBinaryKey(const command_buffer_t& key);
+bool IsBinaryData(const command_buffer_t& data);
 
 class KeyString {
  public:
@@ -116,6 +116,7 @@ class NDbKValue {
 
   std::string GetValueString() const;
   std::string GetValueForCommandLine() const;
+  std::string GetHumanReadable() const;
 
   bool EqualsKey(const NKey& key) const;
   bool Equals(const NDbKValue& other) const;

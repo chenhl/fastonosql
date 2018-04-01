@@ -689,9 +689,9 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
     }
 
     if (i == keys.size() - 1) {
-      is_wrote = fl.WriteFormated("\"%s\":\"%s\"\n", key_str.GetHumanReadable(), loaded_key.GetValueString());
+      is_wrote = fl.WriteFormated("\"%s\":\"%s\"\n", key_str.GetHumanReadable(), loaded_key.GetHumanReadable());
     } else {
-      is_wrote = fl.WriteFormated("\"%s\":\"%s\",\n", key_str.GetHumanReadable(), loaded_key.GetValueString());
+      is_wrote = fl.WriteFormated("\"%s\":\"%s\",\n", key_str.GetHumanReadable(), loaded_key.GetHumanReadable());
     }
 
     if (!is_wrote) {

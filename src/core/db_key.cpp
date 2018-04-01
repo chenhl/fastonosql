@@ -26,9 +26,9 @@
 namespace fastonosql {
 namespace core {
 
-bool IsBinaryKey(const command_buffer_t& key) {
-  for (size_t i = 0; i < key.size(); ++i) {
-    unsigned char c = static_cast<unsigned char>(key[i]);
+bool IsBinaryData(const command_buffer_t& data) {
+  for (size_t i = 0; i < data.size(); ++i) {
+    unsigned char c = static_cast<unsigned char>(data[i]);
     if (c < ' ') {  // should be hexed symbol
       return true;
     }
@@ -74,7 +74,7 @@ string_key_t KeyString::GetKeyForCommandLine() const {
 
 void KeyString::SetKeyData(const string_key_t& key_data) {
   key_ = key_data;
-  type_ = IsBinaryKey(key_data) ? BINARY_KEY : TEXT_KEY;
+  type_ = IsBinaryData(key_data) ? BINARY_KEY : TEXT_KEY;
 }
 
 bool KeyString::Equals(const KeyString& other) const {
@@ -147,6 +147,11 @@ std::string NDbKValue::GetValueString() const {
 
 std::string NDbKValue::GetValueForCommandLine() const {
   return ConvertValue(value_.get(), " ", true);
+}
+
+std::string NDbKValue::GetHumanReadable() const {
+  std::string data = ConvertToHumanReadable(value_.get(), " ");
+  return IsBinaryData(data) ? detail::hex_string(data) : data;
 }
 
 bool NDbKValue::EqualsKey(const NKey& key) const {
