@@ -559,13 +559,13 @@ void IServer::LoadKey(core::NDbKValue key) {
   }
 }
 
-void IServer::RenameKey(core::NKey key, core::string_key_t new_name) {
+void IServer::RenameKey(core::NKey key, core::key_t new_name) {
   database_t cdb = GetCurrentDatabaseInfo();
   if (!cdb) {
     return;
   }
 
-  if (cdb->RenameKey(key, core::key_t(new_name))) {
+  if (cdb->RenameKey(key, new_name)) {
     emit KeyRenamed(cdb, key, new_name);
   }
 }

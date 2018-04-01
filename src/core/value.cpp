@@ -23,46 +23,8 @@
 #include <json-c/json_tokener.h>
 
 #include <common/convert2string.h>
-#include <common/utils.h>
 
-namespace {
-
-template <typename T>
-std::string string_from_hex_impl(const T& value) {
-  size_t len = value.size();
-  if (len % 4 != 0) {
-    return std::string();
-  }
-
-  std::string hex_digits;
-  for (size_t i = 0; i < len; i += 4) {
-    auto c1 = value[i];
-    auto c2 = value[i + 1];
-    if (c1 == '\\' && c2 == 'x') {
-      hex_digits += value[i + 2];
-      hex_digits += value[i + 3];
-    } else {
-      return std::string();
-    }
-  }
-
-  return common::utils::hex::decode(hex_digits);
-}
-
-template <typename T>
-std::string hex_string_impl(const T& value) {
-  std::ostringstream wr;
-  auto hexed = common::utils::hex::encode(value, true);
-  for (size_t i = 0; i < hexed.size(); i += 2) {
-    wr << "\\x";
-    wr << hexed[i];
-    wr << hexed[i + 1];
-  }
-
-  return wr.str();
-}
-
-}  // namespace
+#include <core/types.h>
 
 namespace fastonosql {
 namespace core {
@@ -301,38 +263,6 @@ const char* GetTypeName(common::Value::Type value_type) {
   return "UNKNOWN";
 }
 
-namespace detail {
-bool have_space(const std::string& data) {
-  auto it = std::find_if(data.begin(), data.end(), [](char c) { return std::isspace(c); });
-  return it != data.end();
-}
-
-bool is_json(const std::string& data) {
-  if (data.empty()) {
-    return false;
-  }
-
-  return data[0] == '{' && data[data.size() - 1] == '}' || data[0] == '[' && data[data.size() - 1] == ']';
-}
-
-std::string hex_string(const common::buffer_t& value) {
-  return hex_string_impl(value);
-}
-
-std::string hex_string(const std::string& value) {
-  return hex_string_impl(value);
-}
-
-std::string string_from_hex(const common::buffer_t& value) {
-  return string_from_hex_impl(value);
-}
-
-std::string string_from_hex(const std::string& value) {
-  return string_from_hex_impl(value);
-}
-
-}  // namespace detail
-
 std::string ConvertValue(common::Value* value, const std::string& delimiter, bool for_cmd) {
   if (!value) {
     return std::string();
@@ -556,20 +486,8 @@ std::string ConvertValue(common::StringValue* value, const std::string& delimite
     return res;
   }
 
-  if (res.empty()) {
-    return res;
-  }
-
-  if (detail::is_json(res)) {
-    return res;
-  }
-
-  if (detail::have_space(res)) {
-    std::string escaped = "\"" + res + "\"";
-    return escaped;
-  }
-
-  return res;
+  ReadableString rs(res);
+  return rs.GetForCommandLine();
 }
 
 std::string ConvertValue(common::ByteArrayValue* value, const std::string& delimiter, bool for_cmd) {

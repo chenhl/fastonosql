@@ -21,6 +21,8 @@
 #include <deque>
 #include <string>
 
+#include <common/types.h>
+
 namespace fastonosql {
 namespace core {
 
@@ -30,6 +32,47 @@ typedef std::basic_stringstream<command_buffer_char_t> command_buffer_writer_t;
 typedef std::deque<command_buffer_t> commands_args_t;
 
 command_buffer_t StableCommand(const command_buffer_t& command);
+
+namespace detail {
+bool is_binary_data(const command_buffer_t& data);
+std::string hex_string(const common::buffer_t& value);
+std::string hex_string(const std::string& value);
+bool have_space(const std::string& data);
+std::string string_from_hex(const common::buffer_t& value);
+std::string string_from_hex(const std::string& value);
+bool is_json(const std::string& data);
+}
+
+typedef command_buffer_t readable_string_t;
+
+class ReadableString {
+ public:
+  enum DataType { TEXT_DATA = 0, BINARY_DATA };
+
+  ReadableString();
+  ReadableString(const readable_string_t& data);
+
+  DataType GetType() const;
+
+  std::string GetData() const;                  // for direct bytes call
+  std::string GetHumanReadable() const;         // for diplaying
+  readable_string_t GetForCommandLine() const;  // escape if hex, or double quoted if text with space
+  void SetData(const readable_string_t& data);
+
+  bool Equals(const ReadableString& other) const;
+
+ private:
+  readable_string_t data_;
+  DataType type_;
+};
+
+inline bool operator==(const ReadableString& r, const ReadableString& l) {
+  return r.Equals(l);
+}
+
+inline bool operator!=(const ReadableString& r, const ReadableString& l) {
+  return !(r == l);
+}
 
 }  // namespace core
 }  // namespace fastonosql

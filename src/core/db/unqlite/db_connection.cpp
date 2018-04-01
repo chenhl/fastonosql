@@ -341,20 +341,20 @@ common::Error DBConnection::Info(const std::string& args, ServerInfo::Stats* sta
   return common::Error();
 }
 
-common::Error DBConnection::SetInner(key_t key, const std::string& value) {
-  const string_key_t key_slice = key.GetKeyData();
+common::Error DBConnection::SetInner(const key_t& key, const std::string& value) {
+  const readable_string_t key_slice = key.GetData();
   return CheckResultCommand(DB_SET_KEY_COMMAND, unqlite_kv_store(connection_.handle_, key_slice.data(),
                                                                  key_slice.size(), value.c_str(), value.length()));
 }
 
-common::Error DBConnection::DelInner(key_t key) {
-  const string_key_t key_slice = key.GetKeyData();
+common::Error DBConnection::DelInner(const key_t& key) {
+  const readable_string_t key_slice = key.GetData();
   return CheckResultCommand(DB_DELETE_KEY_COMMAND,
                             unqlite_kv_delete(connection_.handle_, key_slice.data(), key_slice.size()));
 }
 
-common::Error DBConnection::GetInner(key_t key, std::string* ret_val) {
-  const string_key_t key_slice = key.GetKeyData();
+common::Error DBConnection::GetInner(const key_t& key, std::string* ret_val) {
+  const readable_string_t key_slice = key.GetData();
   return CheckResultCommand(DB_GET_KEY_COMMAND,
                             unqlite_kv_fetch_callback(connection_.handle_, key_slice.data(), key_slice.size(),
                                                       unqlite_data_callback, ret_val));
@@ -470,7 +470,7 @@ common::Error DBConnection::FlushDBImpl() {
   while (unqlite_kv_cursor_valid_entry(pCur)) {
     std::string key;
     unqlite_kv_cursor_key_callback(pCur, unqlite_data_callback, &key);
-    common::Error err = DelInner(key_t(key));
+    common::Error err = DelInner(key);
     if (err) {
       return err;
     }
@@ -498,7 +498,7 @@ common::Error DBConnection::SelectImpl(const std::string& name, IDataBaseInfo** 
 common::Error DBConnection::SetImpl(const NDbKValue& key, NDbKValue* added_key) {
   const NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetValueString();
+  std::string value_str = key.GetHumanReadableValue();
   common::Error err = SetInner(key_str, value_str);
   if (err) {
     return err;
@@ -521,7 +521,7 @@ common::Error DBConnection::GetImpl(const NKey& key, NDbKValue* loaded_key) {
   return common::Error();
 }
 
-common::Error DBConnection::RenameImpl(const NKey& key, string_key_t new_key) {
+common::Error DBConnection::RenameImpl(const NKey& key, const key_t& new_key) {
   key_t key_str = key.GetKey();
   std::string value_str;
   common::Error err = GetInner(key_str, &value_str);
@@ -534,7 +534,7 @@ common::Error DBConnection::RenameImpl(const NKey& key, string_key_t new_key) {
     return err;
   }
 
-  err = SetInner(key_t(new_key), value_str);
+  err = SetInner(new_key, value_str);
   if (err) {
     return err;
   }

@@ -45,9 +45,9 @@ class DBConnection : public core::internal::CDBConnection<NativeConnection, Conf
  private:
   common::Error CheckResultCommand(const std::string& cmd, int err) WARN_UNUSED_RESULT;
 
-  common::Error DelInner(key_t key) WARN_UNUSED_RESULT;
-  common::Error SetInner(key_t key, const std::string& value) WARN_UNUSED_RESULT;
-  common::Error GetInner(key_t key, std::string* ret_val) WARN_UNUSED_RESULT;
+  common::Error DelInner(const key_t& key) WARN_UNUSED_RESULT;
+  common::Error SetInner(const key_t& key, const std::string& value) WARN_UNUSED_RESULT;
+  common::Error GetInner(const key_t& key, std::string* ret_val) WARN_UNUSED_RESULT;
 
   virtual common::Error ScanImpl(cursor_t cursor_in,
                                  const std::string& pattern,
@@ -64,7 +64,7 @@ class DBConnection : public core::internal::CDBConnection<NativeConnection, Conf
   virtual common::Error DeleteImpl(const NKeys& keys, NKeys* deleted_keys) override;
   virtual common::Error SetImpl(const NDbKValue& key, NDbKValue* added_key) override;
   virtual common::Error GetImpl(const NKey& key, NDbKValue* loaded_key) override;
-  virtual common::Error RenameImpl(const NKey& key, string_key_t new_key) override;
+  virtual common::Error RenameImpl(const NKey& key, const key_t& new_key) override;
   virtual common::Error QuitImpl() override;
   virtual common::Error ConfigGetDatabasesImpl(std::vector<std::string>* dbs) override;
 };

@@ -37,40 +37,7 @@ COMPILE_ASSERT(std::numeric_limits<ttl_t>::max() >= NO_TTL && NO_TTL >= std::num
 COMPILE_ASSERT(std::numeric_limits<ttl_t>::max() >= EXPIRED_TTL && EXPIRED_TTL >= std::numeric_limits<ttl_t>::min(),
                "EXPIRED_TTL define must be in ttl type range");
 
-typedef command_buffer_t string_key_t;
-
-bool IsBinaryData(const command_buffer_t& data);
-
-class KeyString {
- public:
-  enum KeyType { TEXT_KEY = 0, BINARY_KEY };
-
-  KeyString();
-  KeyString(const string_key_t& key_data);
-
-  KeyType GetType() const;
-
-  std::string GetKeyData() const;             // for direct bytes call
-  std::string GetHumanReadable() const;       // for diplaying
-  string_key_t GetKeyForCommandLine() const;  // escape if hex, or double quoted if text with space
-  void SetKeyData(const string_key_t& key_data);
-
-  bool Equals(const KeyString& other) const;
-
- private:
-  string_key_t key_;
-  KeyType type_;
-};
-
-inline bool operator==(const KeyString& r, const KeyString& l) {
-  return r.Equals(l);
-}
-
-inline bool operator!=(const KeyString& r, const KeyString& l) {
-  return !(r == l);
-}
-
-typedef KeyString key_t;
+typedef ReadableString key_t;
 
 class NKey {
  public:
@@ -114,9 +81,8 @@ class NDbKValue {
   void SetKey(const NKey& key);
   void SetValue(NValue value);
 
-  std::string GetValueString() const;
   std::string GetValueForCommandLine() const;
-  std::string GetHumanReadable() const;
+  std::string GetHumanReadableValue() const;
 
   bool EqualsKey(const NKey& key) const;
   bool Equals(const NDbKValue& other) const;

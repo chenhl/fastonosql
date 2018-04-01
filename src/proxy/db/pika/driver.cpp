@@ -261,11 +261,11 @@ void Driver::HandleLoadDatabaseContentEvent(events::LoadDatabaseContentRequestEv
           core::NKey k(key_str);
           core::NDbKValue dbv(k, core::NValue());
           core::command_buffer_writer_t wr_type;
-          wr_type << REDIS_TYPE_COMMAND " " << key_str.GetKeyForCommandLine();
+          wr_type << REDIS_TYPE_COMMAND " " << key_str.GetForCommandLine();
           cmds.push_back(CreateCommandFast(wr_type.str(), core::C_INNER));
 
           core::command_buffer_writer_t wr_ttl;
-          wr_ttl << DB_GET_TTL_COMMAND " " << key_str.GetKeyForCommandLine();
+          wr_ttl << DB_GET_TTL_COMMAND " " << key_str.GetForCommandLine();
           cmds.push_back(CreateCommandFast(wr_ttl.str(), core::C_INNER));
           res.keys.push_back(dbv);
         }

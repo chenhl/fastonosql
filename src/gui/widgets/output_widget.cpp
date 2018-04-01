@@ -57,7 +57,7 @@ core::FastoObjectCommand* FindCommand(core::FastoObject* obj) {
 }
 
 FastoCommonItem* CreateItem(common::qt::gui::TreeItem* parent,
-                            core::string_key_t key,
+                            core::readable_string_t key,
                             bool readOnly,
                             core::FastoObject* item) {
   core::NValue value = item->GetValue();
@@ -233,7 +233,7 @@ void OutputWidget::addCommand(core::FastoObjectCommand* command, core::FastoObje
   fastonosql::gui::FastoCommonItem* common_child = nullptr;
   core::translator_t tr = server_->GetTranslator();
   core::command_buffer_t input_cmd = command->GetInputCommand();
-  core::string_key_t key;
+  core::readable_string_t key;
   if (tr->IsLoadKeyCommand(input_cmd, &key)) {
     common_child = CreateItem(par, key, false, child);
   } else {

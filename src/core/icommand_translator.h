@@ -81,7 +81,7 @@ class ICommandTranslator {
   common::Error ChangeKeyTTLCommand(const NKey& key, ttl_t ttl, command_buffer_t* cmdstring) const WARN_UNUSED_RESULT;
   common::Error LoadKeyTTLCommand(const NKey& key, command_buffer_t* cmdstring) const WARN_UNUSED_RESULT;
 
-  bool IsLoadKeyCommand(const command_buffer_t& cmd, string_key_t* key) const WARN_UNUSED_RESULT;
+  bool IsLoadKeyCommand(const command_buffer_t& cmd, readable_string_t* key) const WARN_UNUSED_RESULT;
 
   common::Error PublishCommand(const NDbPSChannel& channel,
                                const std::string& message,

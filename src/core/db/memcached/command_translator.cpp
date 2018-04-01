@@ -42,7 +42,7 @@ common::Error CommandTranslator::CreateKeyCommandImpl(const NDbKValue& key, comm
   key_t key_str = cur.GetKey();
   std::string value_str = key.GetValueForCommandLine();
   command_buffer_writer_t wr;
-  wr << MEMCACHED_SET_KEY_COMMAND " " << key_str.GetKeyForCommandLine() << " " << value_str;
+  wr << MEMCACHED_SET_KEY_COMMAND " " << key_str.GetForCommandLine() << " " << value_str;
   *cmdstring = wr.str();
   return common::Error();
 }
@@ -54,7 +54,7 @@ common::Error CommandTranslator::LoadKeyCommandImpl(const NKey& key,
 
   key_t key_str = key.GetKey();
   command_buffer_writer_t wr;
-  wr << MEMCACHED_GET_KEY_COMMAND " " << key_str.GetKeyForCommandLine();
+  wr << MEMCACHED_GET_KEY_COMMAND " " << key_str.GetForCommandLine();
   *cmdstring = wr.str();
   return common::Error();
 }
@@ -62,7 +62,7 @@ common::Error CommandTranslator::LoadKeyCommandImpl(const NKey& key,
 common::Error CommandTranslator::DeleteKeyCommandImpl(const NKey& key, command_buffer_t* cmdstring) const {
   key_t key_str = key.GetKey();
   command_buffer_writer_t wr;
-  wr << MEMCACHED_DELETE_KEY_COMMAND " " << key_str.GetKeyForCommandLine();
+  wr << MEMCACHED_DELETE_KEY_COMMAND " " << key_str.GetForCommandLine();
   *cmdstring = wr.str();
   return common::Error();
 }
@@ -72,7 +72,7 @@ common::Error CommandTranslator::RenameKeyCommandImpl(const NKey& key,
                                                       command_buffer_t* cmdstring) const {
   key_t key_str = key.GetKey();
   command_buffer_writer_t wr;
-  wr << MEMCACHED_RENAME_KEY_COMMAND " " << key_str.GetKeyForCommandLine() << " " << new_name.GetKeyForCommandLine();
+  wr << MEMCACHED_RENAME_KEY_COMMAND " " << key_str.GetForCommandLine() << " " << new_name.GetForCommandLine();
   *cmdstring = wr.str();
   return common::Error();
 }
@@ -82,7 +82,7 @@ common::Error CommandTranslator::ChangeKeyTTLCommandImpl(const NKey& key,
                                                          command_buffer_t* cmdstring) const {
   key_t key_str = key.GetKey();
   command_buffer_writer_t wr;
-  wr << MEMCACHED_CHANGE_TTL_COMMAND " " << key_str.GetKeyForCommandLine() << " " << ttl;
+  wr << MEMCACHED_CHANGE_TTL_COMMAND " " << key_str.GetForCommandLine() << " " << ttl;
   *cmdstring = wr.str();
   return common::Error();
 }
@@ -90,7 +90,7 @@ common::Error CommandTranslator::ChangeKeyTTLCommandImpl(const NKey& key,
 common::Error CommandTranslator::LoadKeyTTLCommandImpl(const NKey& key, command_buffer_t* cmdstring) const {
   key_t key_str = key.GetKey();
   command_buffer_writer_t wr;
-  wr << MEMCACHED_GET_TTL_COMMAND " " << key_str.GetKeyForCommandLine();
+  wr << MEMCACHED_GET_TTL_COMMAND " " << key_str.GetForCommandLine();
   *cmdstring = wr.str();
   return common::Error();
 }

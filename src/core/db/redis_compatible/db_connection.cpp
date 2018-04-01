@@ -1812,10 +1812,10 @@ common::Error DBConnection<Config, ContType>::GetImpl(const NKey& key, NDbKValue
 }
 
 template <typename Config, connectionTypes ContType>
-common::Error DBConnection<Config, ContType>::RenameImpl(const NKey& key, string_key_t new_key) {
+common::Error DBConnection<Config, ContType>::RenameImpl(const NKey& key, const key_t& new_key) {
   redis_translator_t tran = base_class::template GetSpecificTranslator<CommandTranslator>();
   command_buffer_t rename_cmd;
-  common::Error err = tran->RenameKeyCommand(key, key_t(new_key), &rename_cmd);
+  common::Error err = tran->RenameKeyCommand(key, new_key, &rename_cmd);
   if (err) {
     return err;
   }

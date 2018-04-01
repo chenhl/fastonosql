@@ -159,7 +159,7 @@ common::Error ICommandTranslator::LoadKeyTTLCommand(const NKey& key, command_buf
   return LoadKeyTTLCommandImpl(key, cmdstring);
 }
 
-bool ICommandTranslator::IsLoadKeyCommand(const command_buffer_t& cmd, string_key_t* key) const {
+bool ICommandTranslator::IsLoadKeyCommand(const command_buffer_t& cmd, readable_string_t* key) const {
   if (!key) {
     return false;
   }

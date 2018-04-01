@@ -103,7 +103,7 @@ QVariant ExplorerTreeModel::data(const QModelIndex& index, int role) const {
       ExplorerKeyItem* key = static_cast<ExplorerKeyItem*>(node);
       core::NKey nkey = key->key();
       core::key_t key_str = nkey.GetKey();
-      return trKey_1S.arg(key_str.GetType() == core::key_t::BINARY_KEY ? "hex" : "text");
+      return trKey_1S.arg(key_str.GetType() == core::key_t::BINARY_DATA ? "hex" : "text");
     }
 
     return QVariant();
@@ -160,7 +160,7 @@ QVariant ExplorerTreeModel::data(const QModelIndex& index, int role) const {
       ExplorerKeyItem* key = static_cast<ExplorerKeyItem*>(node);
       core::NKey nkey = key->key();
       core::key_t key_str = nkey.GetKey();
-      if (key_str.GetType() == core::key_t::BINARY_KEY) {
+      if (key_str.GetType() == core::key_t::BINARY_DATA) {
         return QVariant(QColor(Qt::gray));
       }
     }

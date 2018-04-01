@@ -92,7 +92,10 @@ struct hacked_memcached_instance_st {
 namespace {
 
 struct KeysHolder {
-  KeysHolder(const std::string& key_start, const std::string& key_end, fastonosql::core::keys_limit_t limit, std::vector<std::string>* r)
+  KeysHolder(const std::string& key_start,
+             const std::string& key_end,
+             fastonosql::core::keys_limit_t limit,
+             std::vector<std::string>* r)
       : key_start(key_start), key_end(key_end), limit(limit), r(r) {}
 
   const std::string key_start;
@@ -623,7 +626,7 @@ common::Error DBConnection::AddIfNotExist(const NKey& key,
   }
 
   const key_t key_str = key.GetKey();
-  const string_key_t key_slice = key_str.GetKeyData();
+  const readable_string_t key_slice = key_str.GetData();
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   err = CheckResultCommand("ADD", memcached_add(connection_.handle_, key_slice_ptr, key_slice.size(), value.c_str(),
                                                 value.length(), expiration, flags));
@@ -648,7 +651,7 @@ common::Error DBConnection::Replace(const NKey& key, const std::string& value, t
   }
 
   const key_t key_str = key.GetKey();
-  const string_key_t key_slice = key_str.GetKeyData();
+  const readable_string_t key_slice = key_str.GetData();
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   err = CheckResultCommand("REPLACE", memcached_replace(connection_.handle_, key_slice_ptr, key_slice.size(),
                                                         value.c_str(), value.length(), expiration, flags));
@@ -673,7 +676,7 @@ common::Error DBConnection::Append(const NKey& key, const std::string& value, ti
   }
 
   const key_t key_str = key.GetKey();
-  const string_key_t key_slice = key_str.GetKeyData();
+  const readable_string_t key_slice = key_str.GetData();
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   err = CheckResultCommand("APPEND", memcached_append(connection_.handle_, key_slice_ptr, key_slice.size(),
                                                       value.c_str(), value.length(), expiration, flags));
@@ -698,7 +701,7 @@ common::Error DBConnection::Prepend(const NKey& key, const std::string& value, t
   }
 
   const key_t key_str = key.GetKey();
-  const string_key_t key_slice = key_str.GetKeyData();
+  const readable_string_t key_slice = key_str.GetData();
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   err = CheckResultCommand("PREPEND", memcached_prepend(connection_.handle_, key_slice_ptr, key_slice.size(),
                                                         value.c_str(), value.length(), expiration, flags));
@@ -724,7 +727,7 @@ common::Error DBConnection::Incr(const NKey& key, uint32_t value, uint64_t* resu
   }
 
   const key_t key_str = key.GetKey();
-  const string_key_t key_slice = key_str.GetKeyData();
+  const readable_string_t key_slice = key_str.GetData();
   uint64_t local_value = 0;
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   err = CheckResultCommand(
@@ -753,7 +756,7 @@ common::Error DBConnection::Decr(const NKey& key, uint32_t value, uint64_t* resu
   }
 
   const key_t key_str = key.GetKey();
-  const string_key_t key_slice = key_str.GetKeyData();
+  const readable_string_t key_slice = key_str.GetData();
   uint64_t local_value = 0;
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   err = CheckResultCommand(
@@ -770,21 +773,21 @@ common::Error DBConnection::Decr(const NKey& key, uint32_t value, uint64_t* resu
   return common::Error();
 }
 
-common::Error DBConnection::DelInner(key_t key, time_t expiration) {
-  const string_key_t key_slice = key.GetKeyData();
+common::Error DBConnection::DelInner(const key_t& key, time_t expiration) {
+  const readable_string_t key_slice = key.GetData();
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   return CheckResultCommand(DB_DELETE_KEY_COMMAND,
                             memcached_delete(connection_.handle_, key_slice_ptr, key_slice.size(), expiration));
 }
 
-common::Error DBConnection::SetInner(key_t key, const std::string& value, time_t expiration, uint32_t flags) {
-  const string_key_t key_slice = key.GetKeyData();
+common::Error DBConnection::SetInner(const key_t& key, const std::string& value, time_t expiration, uint32_t flags) {
+  const readable_string_t key_slice = key.GetData();
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   return CheckResultCommand(DB_SET_KEY_COMMAND, memcached_set(connection_.handle_, key_slice_ptr, key_slice.size(),
                                                               value.c_str(), value.length(), expiration, flags));
 }
 
-common::Error DBConnection::GetInner(key_t key, std::string* ret_val) {
+common::Error DBConnection::GetInner(const key_t& key, std::string* ret_val) {
   if (!ret_val) {
     DNOTREACHED();
     return common::make_error_inval();
@@ -794,7 +797,7 @@ common::Error DBConnection::GetInner(key_t key, std::string* ret_val) {
   memcached_return error;
   size_t value_length = 0;
 
-  const string_key_t key_slice = key.GetKeyData();
+  const readable_string_t key_slice = key.GetData();
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   char* value = memcached_get(connection_.handle_, key_slice_ptr, key_slice.size(), &value_length, &flags, &error);
   common::Error err = CheckResultCommand(DB_GET_KEY_COMMAND, error);
@@ -813,7 +816,7 @@ common::Error DBConnection::ExpireInner(key_t key, ttl_t expiration) {
   memcached_return error;
   size_t value_length = 0;
 
-  const string_key_t key_slice = key.GetKeyData();
+  const readable_string_t key_slice = key.GetData();
   const char* key_slice_ptr = reinterpret_cast<const char*>(key_slice.data());
   char* value = memcached_get(connection_.handle_, key_slice_ptr, key_slice.size(), &value_length, &flags, &error);
   common::Error err = CheckResultCommand(DB_SET_TTL_COMMAND, error);
@@ -954,7 +957,7 @@ common::Error DBConnection::GetImpl(const NKey& key, NDbKValue* loaded_key) {
 common::Error DBConnection::SetImpl(const NDbKValue& key, NDbKValue* added_key) {
   const NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetValueString();
+  std::string value_str = key.GetHumanReadableValue();
   common::Error err = SetInner(key_str, value_str, 0, 0);
   if (err) {
     return err;
@@ -964,7 +967,7 @@ common::Error DBConnection::SetImpl(const NDbKValue& key, NDbKValue* added_key) 
   return common::Error();
 }
 
-common::Error DBConnection::RenameImpl(const NKey& key, string_key_t new_key) {
+common::Error DBConnection::RenameImpl(const NKey& key, const key_t& new_key) {
   key_t key_str = key.GetKey();
   std::string value_str;
   common::Error err = GetInner(key_str, &value_str);
@@ -977,7 +980,7 @@ common::Error DBConnection::RenameImpl(const NKey& key, string_key_t new_key) {
     return err;
   }
 
-  err = SetInner(key_t(new_key), value_str, 0, 0);
+  err = SetInner(new_key, value_str, 0, 0);
   if (err) {
     return err;
   }

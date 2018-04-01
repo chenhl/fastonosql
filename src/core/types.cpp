@@ -18,7 +18,50 @@
 
 #include "core/types.h"
 
+#include <algorithm>
+
 #include <common/string_util.h>
+
+#include <common/convert2string.h>
+
+namespace {
+
+template <typename T>
+std::string string_from_hex_impl(const T& value) {
+  size_t len = value.size();
+  if (len % 4 != 0) {
+    return std::string();
+  }
+
+  std::string hex_digits;
+  for (size_t i = 0; i < len; i += 4) {
+    auto c1 = value[i];
+    auto c2 = value[i + 1];
+    if (c1 == '\\' && c2 == 'x') {
+      hex_digits += value[i + 2];
+      hex_digits += value[i + 3];
+    } else {
+      return std::string();
+    }
+  }
+
+  return common::utils::hex::decode(hex_digits);
+}
+
+template <typename T>
+std::string hex_string_impl(const T& value) {
+  std::ostringstream wr;
+  auto hexed = common::utils::hex::encode(value, true);
+  for (size_t i = 0; i < hexed.size(); i += 2) {
+    wr << "\\x";
+    wr << hexed[i];
+    wr << hexed[i + 1];
+  }
+
+  return wr.str();
+}
+
+}  // namespace
 
 namespace fastonosql {
 namespace core {
@@ -56,6 +99,97 @@ command_buffer_t StableCommand(const command_buffer_t& command) {
 
   return stabled_command;
 }
+
+ReadableString::ReadableString() : data_(), type_(TEXT_DATA) {}
+
+ReadableString::ReadableString(const readable_string_t& data) : data_(), type_(TEXT_DATA) {
+  SetData(data);
+}
+
+ReadableString::DataType ReadableString::GetType() const {
+  return type_;
+}
+
+std::string ReadableString::GetData() const {
+  return data_;
+}
+
+std::string ReadableString::GetHumanReadable() const {
+  if (type_ == BINARY_DATA) {
+    return detail::hex_string(data_);
+  }
+
+  return data_;
+}
+
+readable_string_t ReadableString::GetForCommandLine() const {
+  if (type_ == BINARY_DATA) {
+    command_buffer_writer_t wr;
+    wr << "\"" << detail::hex_string(data_) << "\"";
+    return wr.str();
+  }
+
+  if (detail::is_json(data_)) {
+    return data_;
+  }
+
+  if (detail::have_space(data_)) {
+    return "\"" + data_ + "\"";
+  }
+
+  return data_;
+}
+
+void ReadableString::SetData(const readable_string_t& data) {
+  data_ = data;
+  type_ = detail::is_binary_data(data) ? BINARY_DATA : TEXT_DATA;
+}
+
+bool ReadableString::Equals(const ReadableString& other) const {
+  return data_ == other.data_;
+}
+
+namespace detail {
+
+std::string hex_string(const common::buffer_t& value) {
+  return hex_string_impl(value);
+}
+
+std::string hex_string(const std::string& value) {
+  return hex_string_impl(value);
+}
+
+std::string string_from_hex(const common::buffer_t& value) {
+  return string_from_hex_impl(value);
+}
+
+std::string string_from_hex(const std::string& value) {
+  return string_from_hex_impl(value);
+}
+
+bool have_space(const std::string& data) {
+  auto it = std::find_if(data.begin(), data.end(), [](char c) { return std::isspace(c); });
+  return it != data.end();
+}
+
+bool is_binary_data(const command_buffer_t& data) {
+  for (size_t i = 0; i < data.size(); ++i) {
+    unsigned char c = static_cast<unsigned char>(data[i]);
+    if (c < ' ') {  // should be hexed symbol
+      return true;
+    }
+  }
+  return false;
+}
+
+bool is_json(const std::string& data) {
+  if (data.empty()) {
+    return false;
+  }
+
+  return (data[0] == '{' && data[data.size() - 1] == '}') || (data[0] == '[' && data[data.size() - 1] == ']');
+}
+}  // namespace detail
 
 }  // namespace core
 }  // namespace fastonosql

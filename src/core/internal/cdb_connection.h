@@ -75,7 +75,7 @@ class CDBConnection : public DBConnection<NConnection, Config, connection_type>,
   common::Error Delete(const NKeys& keys, NKeys* deleted_keys) WARN_UNUSED_RESULT;         // nvi
   common::Error Set(const NDbKValue& key, NDbKValue* added_key) WARN_UNUSED_RESULT;        // nvi
   common::Error Get(const NKey& key, NDbKValue* loaded_key) WARN_UNUSED_RESULT;            // nvi
-  common::Error Rename(const NKey& key, const string_key_t& new_key) WARN_UNUSED_RESULT;   // nvi
+  common::Error Rename(const NKey& key, const key_t& new_key) WARN_UNUSED_RESULT;          // nvi
   common::Error SetTTL(const NKey& key, ttl_t ttl) WARN_UNUSED_RESULT;                     // nvi
   common::Error GetTTL(const NKey& key, ttl_t* ttl) WARN_UNUSED_RESULT;                    // nvi
   common::Error ModuleLoad(const ModuleInfo& module) WARN_UNUSED_RESULT;                   // nvi
@@ -115,7 +115,7 @@ class CDBConnection : public DBConnection<NConnection, Config, connection_type>,
   virtual common::Error DeleteImpl(const NKeys& keys, NKeys* deleted_keys) = 0;
   virtual common::Error SetImpl(const NDbKValue& key, NDbKValue* added_key) = 0;
   virtual common::Error GetImpl(const NKey& key, NDbKValue* loaded_key) = 0;
-  virtual common::Error RenameImpl(const NKey& key, string_key_t new_key) = 0;
+  virtual common::Error RenameImpl(const NKey& key, const key_t& new_key) = 0;
   virtual common::Error SetTTLImpl(const NKey& key, ttl_t ttl);      // optional
   virtual common::Error GetTTLImpl(const NKey& key, ttl_t* ttl);     // optional
   virtual common::Error ModuleLoadImpl(const ModuleInfo& module);    // optional
@@ -445,7 +445,7 @@ common::Error CDBConnection<NConnection, Config, ContType>::Get(const NKey& key,
 }
 
 template <typename NConnection, typename Config, connectionTypes ContType>
-common::Error CDBConnection<NConnection, Config, ContType>::Rename(const NKey& key, const string_key_t& new_key) {
+common::Error CDBConnection<NConnection, Config, ContType>::Rename(const NKey& key, const key_t& new_key) {
   common::Error err = CDBConnection<NConnection, Config, ContType>::TestIsAuthenticated();
   if (err) {
     return err;
@@ -679,7 +679,7 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
   }
 
   for (size_t i = 0; i < keys.size(); ++i) {
-    KeyString key_str = keys[i];
+    key_t key_str = keys[i];
     NKey key(key_str);
     NDbKValue loaded_key;
     err = GetImpl(key, &loaded_key);
@@ -689,9 +689,9 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
     }
 
     if (i == keys.size() - 1) {
-      is_wrote = fl.WriteFormated("\"%s\":\"%s\"\n", key_str.GetHumanReadable(), loaded_key.GetHumanReadable());
+      is_wrote = fl.WriteFormated("\"%s\":\"%s\"\n", key_str.GetHumanReadable(), loaded_key.GetHumanReadableValue());
     } else {
-      is_wrote = fl.WriteFormated("\"%s\":\"%s\",\n", key_str.GetHumanReadable(), loaded_key.GetHumanReadable());
+      is_wrote = fl.WriteFormated("\"%s\":\"%s\",\n", key_str.GetHumanReadable(), loaded_key.GetHumanReadableValue());
     }
 
     if (!is_wrote) {

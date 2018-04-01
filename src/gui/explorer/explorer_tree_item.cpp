@@ -58,7 +58,7 @@ void ExplorerServerItem::loadDatabases() {
 void ExplorerServerItem::createDatabase(const QString& name) {
   core::translator_t tran = server_->GetTranslator();
   core::command_buffer_t cmd_str;
-  core::string_key_t name_str = common::ConvertToString(name);
+  std::string name_str = common::ConvertToString(name);
   common::Error err = tran->CreateDBCommand(name_str, &cmd_str);
   if (err) {
     LOG_ERROR(err, common::logging::LOG_LEVEL_ERR, true);
@@ -72,7 +72,7 @@ void ExplorerServerItem::createDatabase(const QString& name) {
 void ExplorerServerItem::removeDatabase(const QString& name) {
   core::translator_t tran = server_->GetTranslator();
   core::command_buffer_t cmd_str;
-  core::string_key_t name_str = common::ConvertToString(name);
+  std::string name_str = common::ConvertToString(name);
   common::Error err = tran->RemoveDBCommand(name_str, &cmd_str);
   if (err) {
     LOG_ERROR(err, common::logging::LOG_LEVEL_ERR, true);
@@ -216,8 +216,8 @@ void ExplorerDatabaseItem::renameKey(const core::NKey& key, const QString& newNa
   proxy::IServerSPtr server = dbs->GetServer();
   core::translator_t tran = server->GetTranslator();
   core::command_buffer_t cmd_str;
-  core::string_key_t key_str = common::ConvertToString(newName);
-  common::Error err = tran->RenameKeyCommand(key, core::key_t(key_str), &cmd_str);
+  core::readable_string_t key_str = common::ConvertToString(newName);
+  common::Error err = tran->RenameKeyCommand(key, key_str, &cmd_str);
   if (err) {
     LOG_ERROR(err, common::logging::LOG_LEVEL_ERR, true);
     return;
