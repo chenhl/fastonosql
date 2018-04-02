@@ -24,7 +24,7 @@
 #define ALL_COMMANDS "*"
 #define ALL_KEYS_PATTERNS "*"
 #define ALL_PUBSUB_CHANNELS "*"
-#define NO_KEYS_LIMIT UINT32_MAX
+#define NO_KEYS_LIMIT INT32_MAX
 
 namespace fastonosql {
 namespace core {

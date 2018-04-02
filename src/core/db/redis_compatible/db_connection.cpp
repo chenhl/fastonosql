@@ -1611,11 +1611,11 @@ common::Error DBConnection<Config, ContType>::SendSync(unsigned long long* paylo
 }
 
 template <typename Config, connectionTypes ContType>
-common::Error DBConnection<Config, ContType>::ScanImpl(uint32_t cursor_in,
+common::Error DBConnection<Config, ContType>::ScanImpl(cursor_t cursor_in,
                                                        const std::string& pattern,
-                                                       uint32_t count_keys,
+                                                       keys_limit_t count_keys,
                                                        std::vector<std::string>* keys_out,
-                                                       uint32_t* cursor_out) {
+                                                       cursor_t* cursor_out) {
   const command_buffer_t pattern_result = core::internal::GetKeysPattern(cursor_in, pattern, count_keys);
   redisReply* reply = NULL;
   common::Error err = ExecRedisCommand(base_class::connection_.handle_, pattern_result, &reply);
