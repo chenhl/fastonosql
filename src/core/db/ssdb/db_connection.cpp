@@ -845,9 +845,10 @@ common::Error DBConnection::Setx(const std::string& key, const std::string& valu
   return CheckResultCommand("SETX", connection_.handle_->setx(key, value, static_cast<int>(ttl)));
 }
 
-common::Error DBConnection::SetInner(const key_t& key, const std::string& value) {
+common::Error DBConnection::SetInner(const key_t& key, const value_t& value) {
   const std::string key_slice = ConvertToSSDBSlice(key);
-  return CheckResultCommand(DB_SET_KEY_COMMAND, connection_.handle_->set(key_slice, value));
+  const readable_string_t value_str = value.GetData();
+  return CheckResultCommand(DB_SET_KEY_COMMAND, connection_.handle_->set(key_slice, value_str));
 }
 
 common::Error DBConnection::GetInner(const key_t& key, std::string* ret_val) {
@@ -1597,7 +1598,8 @@ common::Error DBConnection::RenameImpl(const NKey& key, const key_t& new_key) {
 common::Error DBConnection::SetImpl(const NDbKValue& key, NDbKValue* added_key) {
   const NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetHumanReadableValue();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   common::Error err = SetInner(key_str, value_str);
   if (err) {
     return err;

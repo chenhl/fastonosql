@@ -38,6 +38,7 @@ COMPILE_ASSERT(std::numeric_limits<ttl_t>::max() >= EXPIRED_TTL && EXPIRED_TTL >
                "EXPIRED_TTL define must be in ttl type range");
 
 typedef ReadableString key_t;
+typedef ReadableString value_t;
 
 class NKey {
  public:
@@ -67,7 +68,20 @@ inline bool operator!=(const NKey& r, const NKey& l) {
 }
 
 typedef std::vector<NKey> NKeys;
-typedef common::ValueSPtr NValue;
+
+class NValue : public common::ValueSPtr {
+ public:
+  typedef common::ValueSPtr base_class;
+
+  NValue();
+
+  template <typename U>
+  explicit NValue(U* u) : base_class(u) {}
+
+  NValue(const base_class& other);
+
+  value_t GetValue(const std::string& delimiter = DEFAULT_DELIMITER) const;
+};
 
 class NDbKValue {
  public:
@@ -80,9 +94,6 @@ class NDbKValue {
 
   void SetKey(const NKey& key);
   void SetValue(NValue value);
-
-  std::string GetValueForCommandLine() const;
-  std::string GetHumanReadableValue() const;
 
   bool EqualsKey(const NKey& key) const;
   bool Equals(const NDbKValue& other) const;

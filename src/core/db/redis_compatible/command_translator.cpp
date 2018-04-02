@@ -119,8 +119,9 @@ common::Error CommandTranslator::Mset(const std::vector<NDbKValue>& keys, comman
   for (size_t i = 0; i < keys.size(); ++i) {
     NKey key = keys[i].GetKey();
     key_t key_str = key.GetKey();
-    std::string value_str = keys[i].GetValueForCommandLine();
-    wr << " " << key_str.GetForCommandLine() << " " << value_str;
+    NValue value = keys[i].GetValue();
+    value_t value_str = value.GetValue();
+    wr << " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   }
   *cmdstring = wr.str();
   return common::Error();
@@ -136,8 +137,9 @@ common::Error CommandTranslator::MsetNX(const std::vector<NDbKValue>& keys, comm
   for (size_t i = 0; i < keys.size(); ++i) {
     NKey key = keys[i].GetKey();
     key_t key_str = key.GetKey();
-    std::string value_str = keys[i].GetValueForCommandLine();
-    wr << " " << key_str.GetForCommandLine() << " " << value_str;
+    NValue value = keys[i].GetValue();
+    value_t value_str = value.GetValue();
+    wr << " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   }
   *cmdstring = wr.str();
   return common::Error();
@@ -189,9 +191,10 @@ common::Error CommandTranslator::SetEx(const NDbKValue& key, ttl_t ttl, command_
 
   const NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetValueForCommandLine();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   command_buffer_writer_t wr;
-  wr << REDIS_SETEX " " << key_str.GetForCommandLine() << " " << ttl << " " << value_str;
+  wr << REDIS_SETEX " " << key_str.GetForCommandLine() << " " << ttl << " " << value_str.GetForCommandLine();
   *cmdstring = wr.str();
   return common::Error();
 }
@@ -203,9 +206,10 @@ common::Error CommandTranslator::SetNX(const NDbKValue& key, command_buffer_t* c
 
   const NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetValueForCommandLine();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   command_buffer_writer_t wr;
-  wr << REDIS_SETNX " " << key_str.GetForCommandLine() << " " << value_str;
+  wr << REDIS_SETNX " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   *cmdstring = wr.str();
   return common::Error();
 }
@@ -316,17 +320,19 @@ common::Error CommandTranslator::PTTL(const NKey& key, command_buffer_t* cmdstri
 common::Error CommandTranslator::CreateKeyCommandImpl(const NDbKValue& key, command_buffer_t* cmdstring) const {
   const NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   command_buffer_writer_t wr;
   common::Value::Type type = key.GetType();
 
   if (type == common::Value::TYPE_ARRAY) {
-    wr << REDIS_SET_KEY_ARRAY_COMMAND " " << key_str.GetForCommandLine() << " " << key.GetValueForCommandLine();
+    wr << REDIS_SET_KEY_ARRAY_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   } else if (type == common::Value::TYPE_SET) {
-    wr << REDIS_SET_KEY_SET_COMMAND " " << key_str.GetForCommandLine() << " " << key.GetValueForCommandLine();
+    wr << REDIS_SET_KEY_SET_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   } else if (type == common::Value::TYPE_ZSET) {
-    wr << REDIS_SET_KEY_ZSET_COMMAND " " << key_str.GetForCommandLine() << " " << key.GetValueForCommandLine();
+    wr << REDIS_SET_KEY_ZSET_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   } else if (type == common::Value::TYPE_HASH) {
-    wr << REDIS_SET_KEY_HASH_COMMAND " " << key_str.GetForCommandLine() << " " << key.GetValueForCommandLine();
+    wr << REDIS_SET_KEY_HASH_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   } else if (type == StreamValue::TYPE_STREAM) {  // XADD is complex
     NValue nv = key.GetValue();
     StreamValue* value = static_cast<StreamValue*>(nv.get());
@@ -342,7 +348,7 @@ common::Error CommandTranslator::CreateKeyCommandImpl(const NDbKValue& key, comm
       }
     }
   } else if (type == JsonValue::TYPE_JSON) {
-    wr << REDIS_SET_KEY_JSON_COMMAND " " << key_str.GetForCommandLine() << " . " << key.GetValueForCommandLine();
+    wr << REDIS_SET_KEY_JSON_COMMAND " " << key_str.GetForCommandLine() << " . " << value_str.GetForCommandLine();
   } else if (type == GraphValue::TYPE_GRAPH) {
     return NotSupported(REDIS_GRAPH_MODULE_COMMAND("SET"));
   } else if (type == BloomValue::TYPE_BLOOM) {
@@ -352,7 +358,7 @@ common::Error CommandTranslator::CreateKeyCommandImpl(const NDbKValue& key, comm
   } else if (type == SearchValue::TYPE_FT_TERM) {
     return NotSupported(REDIS_SEARCH_MODULE_COMMAND("TERM.SET"));
   } else {
-    wr << REDIS_SET_KEY_COMMAND " " << key_str.GetForCommandLine() << " " << key.GetValueForCommandLine();
+    wr << REDIS_SET_KEY_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   }
 
   *cmdstring = wr.str();
@@ -457,6 +463,6 @@ common::Error CommandTranslator::SubscribeCommandImpl(const NDbPSChannel& channe
   return common::Error();
 }
 
-}  // namespace redis
+}  // namespace redis_compatible
 }  // namespace core
 }  // namespace fastonosql

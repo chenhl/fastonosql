@@ -46,7 +46,7 @@ common::Value::Type FastoObject::GetType() const {
 }
 
 std::string FastoObject::ToString() const {
-  return ConvertValue(value_.get(), GetDelimiter(), false);
+  return ConvertValue(value_.get(), GetDelimiter());
 }
 
 FastoObject* FastoObject::CreateRoot(const command_buffer_t& text, IFastoObjectObserver* observer) {

@@ -51,18 +51,19 @@ common::Error CommandTranslator::CreateKeyCommandImpl(const NDbKValue& key, comm
   command_buffer_writer_t wr;
   const NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetValueForCommandLine();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   common::Value::Type type = key.GetType();
   if (type == common::Value::TYPE_ARRAY) {
-    wr << SSDB_SET_KEY_ARRAY_COMMAND " " << key_str.GetForCommandLine() << " " << value_str;
+    wr << SSDB_SET_KEY_ARRAY_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   } else if (type == common::Value::TYPE_SET) {
-    wr << SSDB_SET_KEY_SET_COMMAND " " << key_str.GetForCommandLine() << " " << value_str;
+    wr << SSDB_SET_KEY_SET_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   } else if (type == common::Value::TYPE_ZSET) {
-    wr << SSDB_SET_KEY_ZSET_COMMAND " " << key_str.GetForCommandLine() << " " << value_str;
+    wr << SSDB_SET_KEY_ZSET_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   } else if (type == common::Value::TYPE_HASH) {
-    wr << SSDB_SET_KEY_HASH_COMMAND " " << key_str.GetForCommandLine() << " " << value_str;
+    wr << SSDB_SET_KEY_HASH_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   } else {
-    wr << SSDB_SET_KEY_COMMAND " " << key_str.GetForCommandLine() << " " << value_str;
+    wr << SSDB_SET_KEY_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   }
 
   *cmdstring = wr.str();

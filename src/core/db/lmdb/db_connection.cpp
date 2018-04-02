@@ -524,12 +524,13 @@ common::Error DBConnection::DropDatabase() {
   return CheckResultCommand(LMDB_DROPDB_COMMAND, mdb_txn_commit(txn));
 }
 
-common::Error DBConnection::SetInner(const key_t& key, const std::string& value) {
+common::Error DBConnection::SetInner(const key_t& key, const value_t& value) {
   const readable_string_t key_str = key.GetData();
+  const readable_string_t value_str =value.GetData();
   MDB_val key_slice = ConvertToLMDBSlice(key_str.data(), key_str.size());
   MDB_val mval;
-  mval.mv_size = value.size();
-  mval.mv_data = const_cast<char*>(value.c_str());
+  mval.mv_size = value_str.size();
+  mval.mv_data = const_cast<char*>(value_str.data());
 
   MDB_txn* txn = NULL;
   auto conf = GetConfig();
@@ -783,9 +784,10 @@ common::Error DBConnection::SelectImpl(const std::string& name, IDataBaseInfo** 
 }
 
 common::Error DBConnection::SetImpl(const NDbKValue& key, NDbKValue* added_key) {
-  const NKey cur = key.GetKey();
+  NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetHumanReadableValue();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   common::Error err = SetInner(key_str, value_str);
   if (err) {
     return err;

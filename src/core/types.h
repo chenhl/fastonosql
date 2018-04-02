@@ -21,7 +21,7 @@
 #include <deque>
 #include <string>
 
-#include <common/types.h>
+#define DEFAULT_DELIMITER " "
 
 namespace fastonosql {
 namespace core {
@@ -30,20 +30,17 @@ typedef char command_buffer_char_t;
 typedef std::basic_string<command_buffer_char_t> command_buffer_t;
 typedef std::basic_stringstream<command_buffer_char_t> command_buffer_writer_t;
 typedef std::deque<command_buffer_t> commands_args_t;
+typedef command_buffer_t readable_string_t;
 
 command_buffer_t StableCommand(const command_buffer_t& command);
 
 namespace detail {
 bool is_binary_data(const command_buffer_t& data);
-std::string hex_string(const common::buffer_t& value);
 std::string hex_string(const std::string& value);
 bool have_space(const std::string& data);
-std::string string_from_hex(const common::buffer_t& value);
 std::string string_from_hex(const std::string& value);
 bool is_json(const std::string& data);
-}
-
-typedef command_buffer_t readable_string_t;
+}  // namespace detail
 
 class ReadableString {
  public:
@@ -54,8 +51,8 @@ class ReadableString {
 
   DataType GetType() const;
 
-  std::string GetData() const;                  // for direct bytes call
-  std::string GetHumanReadable() const;         // for diplaying
+  readable_string_t GetData() const;            // for direct bytes call
+  readable_string_t GetHumanReadable() const;   // for diplaying
   readable_string_t GetForCommandLine() const;  // escape if hex, or double quoted if text with space
   void SetData(const readable_string_t& data);
 

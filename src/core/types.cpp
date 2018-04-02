@@ -110,11 +110,11 @@ ReadableString::DataType ReadableString::GetType() const {
   return type_;
 }
 
-std::string ReadableString::GetData() const {
+readable_string_t ReadableString::GetData() const {
   return data_;
 }
 
-std::string ReadableString::GetHumanReadable() const {
+readable_string_t ReadableString::GetHumanReadable() const {
   if (type_ == BINARY_DATA) {
     return detail::hex_string(data_);
   }
@@ -146,7 +146,7 @@ void ReadableString::SetData(const readable_string_t& data) {
 }
 
 bool ReadableString::Equals(const ReadableString& other) const {
-  return data_ == other.data_;
+  return type_ == other.type_ && data_ == other.data_;
 }
 
 namespace detail {

@@ -130,7 +130,7 @@ void TypeDelegate::setEditorData(QWidget* editor, const QModelIndex& index) cons
     if (val->GetAsList(&arr)) {
       ListTypeWidget* listwidget = static_cast<ListTypeWidget*>(editor);
       for (auto it = arr->begin(); it != arr->end(); ++it) {
-        std::string val = core::ConvertToHumanReadable((*it));
+        std::string val = core::ConvertValue(*it, DEFAULT_DELIMITER);
         if (val.empty()) {
           continue;
         }
@@ -145,7 +145,7 @@ void TypeDelegate::setEditorData(QWidget* editor, const QModelIndex& index) cons
     if (val->GetAsSet(&set)) {
       ListTypeWidget* listwidget = static_cast<ListTypeWidget*>(editor);
       for (auto it = set->begin(); it != set->end(); ++it) {
-        std::string val = core::ConvertToHumanReadable((*it));
+        std::string val = core::ConvertValue(*it, DEFAULT_DELIMITER);
         if (val.empty()) {
           continue;
         }
@@ -162,13 +162,13 @@ void TypeDelegate::setEditorData(QWidget* editor, const QModelIndex& index) cons
       for (auto it = zset->begin(); it != zset->end(); ++it) {
         auto element = (*it);
         common::Value* key = element.first;
-        std::string key_str = core::ConvertToHumanReadable(key);
+        std::string key_str = core::ConvertValue(key, DEFAULT_DELIMITER);
         if (key_str.empty()) {
           continue;
         }
 
         common::Value* value = element.second;
-        std::string value_str = core::ConvertToHumanReadable(value);
+        std::string value_str = core::ConvertValue(value, DEFAULT_DELIMITER);
         if (value_str.empty()) {
           continue;
         }
@@ -187,13 +187,13 @@ void TypeDelegate::setEditorData(QWidget* editor, const QModelIndex& index) cons
       for (auto it = hash->begin(); it != hash->end(); ++it) {
         auto element = (*it);
         common::Value* key = element.first;
-        std::string key_str = core::ConvertToHumanReadable(key);
+        std::string key_str = core::ConvertValue(key, DEFAULT_DELIMITER);
         if (key_str.empty()) {
           continue;
         }
 
         common::Value* value = element.second;
-        std::string value_str = core::ConvertToHumanReadable(value);
+        std::string value_str = core::ConvertValue(value, DEFAULT_DELIMITER);
         if (value_str.empty()) {
           continue;
         }

@@ -24,8 +24,6 @@
 
 #include <common/convert2string.h>
 
-#include <core/types.h>
-
 namespace fastonosql {
 namespace core {
 namespace {
@@ -263,7 +261,7 @@ const char* GetTypeName(common::Value::Type value_type) {
   return "UNKNOWN";
 }
 
-std::string ConvertValue(common::Value* value, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(common::Value* value, const std::string& delimiter) {
   if (!value) {
     return std::string();
   }
@@ -272,56 +270,56 @@ std::string ConvertValue(common::Value* value, const std::string& delimiter, boo
   if (t == common::Value::TYPE_NULL) {
     return "(nil)";
   } else if (t == common::Value::TYPE_BOOLEAN) {
-    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_INTEGER) {
-    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_UINTEGER) {
-    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_LONG_INTEGER) {
-    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_ULONG_INTEGER) {
-    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_LONG_LONG_INTEGER) {
-    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_ULONG_LONG_INTEGER) {
-    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_DOUBLE) {
-    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::FundamentalValue*>(value), delimiter);
 
   } else if (t == common::Value::TYPE_STRING) {
-    return ConvertValue(static_cast<common::StringValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::StringValue*>(value), delimiter);
 
   } else if (t == common::Value::TYPE_ARRAY) {
-    return ConvertValue(static_cast<common::ArrayValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::ArrayValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_BYTE_ARRAY) {
-    return ConvertValue(static_cast<common::ByteArrayValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::ByteArrayValue*>(value), delimiter);
 
   } else if (t == common::Value::TYPE_SET) {
-    return ConvertValue(static_cast<common::SetValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::SetValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_ZSET) {
-    return ConvertValue(static_cast<common::ZSetValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::ZSetValue*>(value), delimiter);
   } else if (t == common::Value::TYPE_HASH) {
-    return ConvertValue(static_cast<common::HashValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<common::HashValue*>(value), delimiter);
   } else if (t == StreamValue::TYPE_STREAM) {
-    return ConvertValue(static_cast<StreamValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<StreamValue*>(value), delimiter);
     // extended
   } else if (t == JsonValue::TYPE_JSON) {
-    return ConvertValue(static_cast<JsonValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<JsonValue*>(value), delimiter);
   } else if (t == GraphValue::TYPE_GRAPH) {
-    return ConvertValue(static_cast<GraphValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<GraphValue*>(value), delimiter);
   } else if (t == BloomValue::TYPE_BLOOM) {
-    return ConvertValue(static_cast<BloomValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<BloomValue*>(value), delimiter);
   } else if (t == SearchValue::TYPE_FT_INDEX) {
-    return ConvertValue(static_cast<SearchValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<SearchValue*>(value), delimiter);
   } else if (t == SearchValue::TYPE_FT_TERM) {
-    return ConvertValue(static_cast<SearchValue*>(value), delimiter, for_cmd);
+    return ConvertValue(static_cast<SearchValue*>(value), delimiter);
   }
 
   DNOTREACHED();
   return std::string();
 }
 
-std::string ConvertValue(common::ArrayValue* array, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(common::ArrayValue* array, const std::string& delimiter) {
   if (!array) {
     return std::string();
   }
@@ -330,7 +328,7 @@ std::string ConvertValue(common::ArrayValue* array, const std::string& delimiter
   auto lastIt = std::prev(array->end());
   for (auto it = array->begin(); it != array->end(); ++it) {
     common::Value* cur_val = *it;
-    std::string val_str = ConvertValue(cur_val, delimiter, for_cmd);
+    std::string val_str = ConvertValue(cur_val, delimiter);
     if (val_str.empty()) {
       continue;
     }
@@ -344,7 +342,7 @@ std::string ConvertValue(common::ArrayValue* array, const std::string& delimiter
   return result;
 }
 
-std::string ConvertValue(common::SetValue* set, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(common::SetValue* set, const std::string& delimiter) {
   if (!set) {
     return std::string();
   }
@@ -352,7 +350,7 @@ std::string ConvertValue(common::SetValue* set, const std::string& delimiter, bo
   std::string result;
   auto lastIt = std::prev(set->end());
   for (auto it = set->begin(); it != set->end(); ++it) {
-    std::string val = ConvertValue((*it), delimiter, for_cmd);
+    std::string val = ConvertValue((*it), delimiter);
     if (val.empty()) {
       continue;
     }
@@ -366,7 +364,7 @@ std::string ConvertValue(common::SetValue* set, const std::string& delimiter, bo
   return result;
 }
 
-std::string ConvertValue(common::ZSetValue* zset, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(common::ZSetValue* zset, const std::string& delimiter) {
   if (!zset) {
     return std::string();
   }
@@ -375,8 +373,8 @@ std::string ConvertValue(common::ZSetValue* zset, const std::string& delimiter, 
   auto lastIt = std::prev(zset->end());
   for (auto it = zset->begin(); it != zset->end(); ++it) {
     auto v = *it;
-    std::string key = ConvertValue((v.first), delimiter, for_cmd);
-    std::string val = ConvertValue((v.second), delimiter, for_cmd);
+    std::string key = ConvertValue((v.first), delimiter);
+    std::string val = ConvertValue((v.second), delimiter);
     if (val.empty() || key.empty()) {
       continue;
     }
@@ -389,7 +387,7 @@ std::string ConvertValue(common::ZSetValue* zset, const std::string& delimiter, 
   return result;
 }
 
-std::string ConvertValue(common::HashValue* hash, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(common::HashValue* hash, const std::string& delimiter) {
   if (!hash) {
     return std::string();
   }
@@ -397,8 +395,8 @@ std::string ConvertValue(common::HashValue* hash, const std::string& delimiter, 
   std::string result;
   for (auto it = hash->begin(); it != hash->end(); ++it) {
     auto v = *it;
-    std::string key = ConvertValue((v.first), delimiter, for_cmd);
-    std::string val = ConvertValue((v.second), delimiter, for_cmd);
+    std::string key = ConvertValue((v.first), delimiter);
+    std::string val = ConvertValue((v.second), delimiter);
     if (val.empty() || key.empty()) {
       continue;
     }
@@ -411,9 +409,8 @@ std::string ConvertValue(common::HashValue* hash, const std::string& delimiter, 
   return result;
 }
 
-std::string ConvertValue(common::FundamentalValue* value, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(common::FundamentalValue* value, const std::string& delimiter) {
   UNUSED(delimiter);
-  UNUSED(for_cmd);
   if (!value) {
     return std::string();
   }
@@ -471,7 +468,7 @@ std::string ConvertValue(common::FundamentalValue* value, const std::string& del
   return std::string();
 }
 
-std::string ConvertValue(common::StringValue* value, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(common::StringValue* value, const std::string& delimiter) {
   UNUSED(delimiter);
   if (!value) {
     return std::string();
@@ -482,15 +479,10 @@ std::string ConvertValue(common::StringValue* value, const std::string& delimite
     return std::string();
   }
 
-  if (!for_cmd) {
-    return res;
-  }
-
-  ReadableString rs(res);
-  return rs.GetForCommandLine();
+  return res;
 }
 
-std::string ConvertValue(common::ByteArrayValue* value, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(common::ByteArrayValue* value, const std::string& delimiter) {
   UNUSED(delimiter);
   if (!value) {
     return std::string();
@@ -501,15 +493,10 @@ std::string ConvertValue(common::ByteArrayValue* value, const std::string& delim
     return std::string();
   }
 
-  if (!for_cmd) {
-    return common::ConvertToString(res);
-  }
-
-  return detail::hex_string(res);
+  return common::ConvertToString(res);
 }
 
-std::string ConvertValue(StreamValue* value, const std::string& delimiter, bool for_cmd) {
-  UNUSED(for_cmd);
+std::string ConvertValue(StreamValue* value, const std::string& delimiter) {
   if (!value) {
     return std::string();
   }
@@ -531,7 +518,7 @@ std::string ConvertValue(StreamValue* value, const std::string& delimiter, bool 
   return wr.str();
 }
 
-std::string ConvertValue(JsonValue* value, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(JsonValue* value, const std::string& delimiter) {
   UNUSED(delimiter);
   if (!value) {
     return std::string();
@@ -542,36 +529,25 @@ std::string ConvertValue(JsonValue* value, const std::string& delimiter, bool fo
     return std::string();
   }
 
-  if (!for_cmd) {
-    return res;
-  }
-
   return res;
 }
 
-std::string ConvertValue(GraphValue* value, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(GraphValue* value, const std::string& delimiter) {
   UNUSED(value);
   UNUSED(delimiter);
-  UNUSED(for_cmd);
   return std::string();
 }
 
-std::string ConvertValue(BloomValue* value, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(BloomValue* value, const std::string& delimiter) {
   UNUSED(value);
   UNUSED(delimiter);
-  UNUSED(for_cmd);
   return std::string();
 }
 
-std::string ConvertValue(SearchValue* value, const std::string& delimiter, bool for_cmd) {
+std::string ConvertValue(SearchValue* value, const std::string& delimiter) {
   UNUSED(value);
   UNUSED(delimiter);
-  UNUSED(for_cmd);
   return std::string();
-}
-
-std::string ConvertToHumanReadable(common::Value* value, const std::string& delimiter) {
-  return ConvertValue(value, delimiter, false);
 }
 
 }  // namespace core

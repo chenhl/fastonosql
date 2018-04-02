@@ -28,8 +28,6 @@
 
 #include <json-c/json_tokener.h>
 
-#include "core/value.h"  // for ConvertToString
-
 #define CSV_SEPARATOR ","
 
 namespace fastonosql {
@@ -59,8 +57,8 @@ QString FastoCommonItem::value() const {
 
 std::string FastoCommonItem::basicStringValue() const {
   core::NValue nval = key_.GetValue();
-  common::Value* val = nval.get();
-  return core::ConvertToHumanReadable(val, delimiter_);
+  core::value_t value_str = nval.GetValue(delimiter_);
+  return value_str.GetHumanReadable();
 }
 
 void FastoCommonItem::setValue(core::NValue val) {

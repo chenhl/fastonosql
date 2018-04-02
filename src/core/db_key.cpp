@@ -58,6 +58,14 @@ bool NKey::Equals(const NKey& other) const {
   return ttl_ == other.ttl_;
 }
 
+NValue::NValue() : base_class() {}
+
+NValue::NValue(const base_class& other) : base_class(other) {}
+
+value_t NValue::GetValue(const std::string& delimiter) const {
+  return ConvertValue(get(), delimiter);
+}
+
 NDbKValue::NDbKValue() : key_(), value_() {}
 
 NDbKValue::NDbKValue(const NKey& key, NValue value) : key_(key), value_(value) {}
@@ -84,14 +92,6 @@ void NDbKValue::SetKey(const NKey& key) {
 
 void NDbKValue::SetValue(NValue value) {
   value_ = value;
-}
-
-std::string NDbKValue::GetValueForCommandLine() const {
-  return ConvertValue(value_.get(), " ", true);
-}
-
-std::string NDbKValue::GetHumanReadableValue() const {
-  return ConvertToHumanReadable(value_.get(), " ");
 }
 
 bool NDbKValue::EqualsKey(const NKey& key) const {

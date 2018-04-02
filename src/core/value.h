@@ -115,22 +115,19 @@ class SearchValue : public common::Value {
 common::Value* CreateEmptyValueFromType(common::Value::Type value_type);
 const char* GetTypeName(common::Value::Type value_type);
 
-std::string ConvertValue(common::Value* value, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(common::ArrayValue* array, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(common::SetValue* set, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(common::ZSetValue* zset, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(common::HashValue* hash, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(common::FundamentalValue* value, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(common::StringValue* value, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(common::ByteArrayValue* value, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(StreamValue* value, const std::string& delimiter, bool for_cmd);
+std::string ConvertValue(common::Value* value, const std::string& delimiter);
+std::string ConvertValue(common::ArrayValue* array, const std::string& delimiter);
+std::string ConvertValue(common::SetValue* set, const std::string& delimiter);
+std::string ConvertValue(common::ZSetValue* zset, const std::string& delimiter);
+std::string ConvertValue(common::HashValue* hash, const std::string& delimiter);
+std::string ConvertValue(common::FundamentalValue* value, const std::string& delimiter);
+std::string ConvertValue(common::StringValue* value, const std::string& delimiter);
+std::string ConvertValue(common::ByteArrayValue* value, const std::string& delimiter);
+std::string ConvertValue(StreamValue* value, const std::string& delimiter);
 // extended
-std::string ConvertValue(JsonValue* value, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(GraphValue* value, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(BloomValue* value, const std::string& delimiter, bool for_cmd);
-std::string ConvertValue(SearchValue* value, const std::string& delimiter, bool for_cmd);
-
-std::string ConvertToHumanReadable(common::Value* value, const std::string& delimiter = std::string());
-
+std::string ConvertValue(JsonValue* value, const std::string& delimiter);
+std::string ConvertValue(GraphValue* value, const std::string& delimiter);
+std::string ConvertValue(BloomValue* value, const std::string& delimiter);
+std::string ConvertValue(SearchValue* value, const std::string& delimiter);
 }  // namespace core
 }  // namespace fastonosql

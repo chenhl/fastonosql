@@ -38,9 +38,10 @@ const char* CommandTranslator::GetDBName() const {
 common::Error CommandTranslator::CreateKeyCommandImpl(const NDbKValue& key, command_buffer_t* cmdstring) const {
   const NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetValueForCommandLine();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   command_buffer_writer_t wr;
-  wr << LMDB_SET_KEY_COMMAND " " << key_str.GetForCommandLine() << " " << value_str;
+  wr << LMDB_SET_KEY_COMMAND " " << key_str.GetForCommandLine() << " " << value_str.GetForCommandLine();
   *cmdstring = wr.str();
   return common::Error();
 }

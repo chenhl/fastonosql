@@ -51,7 +51,7 @@ class DBConnection : public core::internal::CDBConnection<NativeConnection, Conf
  private:
   common::Error CheckResultCommand(const std::string& cmd, const ::rocksdb::Status& err) WARN_UNUSED_RESULT;
 
-  common::Error SetInner(const key_t& key, const std::string& value) WARN_UNUSED_RESULT;
+  common::Error SetInner(const key_t& key, const value_t& value) WARN_UNUSED_RESULT;
   common::Error GetInner(const key_t& key, std::string* ret_val) WARN_UNUSED_RESULT;
   common::Error DelInner(const key_t& key) WARN_UNUSED_RESULT;
 

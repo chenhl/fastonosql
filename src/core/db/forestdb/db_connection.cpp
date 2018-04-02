@@ -420,10 +420,11 @@ common::Error DBConnection::Info(const std::string& args, ServerInfo::Stats* sta
   return common::Error();
 }
 
-common::Error DBConnection::SetInner(const key_t& key, const std::string& value) {
+common::Error DBConnection::SetInner(const key_t& key, const value_t& value) {
   const readable_string_t key_slice = key.GetData();
+  const readable_string_t value_raw = value.GetData();
   return CheckResultCommand(DB_SET_KEY_COMMAND, fdb_set_kv(connection_.handle_->kvs, key_slice.data(), key_slice.size(),
-                                                           value.c_str(), value.size()));
+                                                           value_raw.c_str(), value_raw.size()));
 }
 
 common::Error DBConnection::GetInner(const key_t& key, std::string* ret_val) {
@@ -631,7 +632,8 @@ common::Error DBConnection::SelectImpl(const std::string& name, IDataBaseInfo** 
 common::Error DBConnection::SetImpl(const NDbKValue& key, NDbKValue* added_key) {
   const NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetHumanReadableValue();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   common::Error err = SetInner(key_str, value_str);
   if (err) {
     return err;

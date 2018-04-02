@@ -251,7 +251,7 @@ void DbKeyDialog::syncControls(common::Value* item) {
     common::ArrayValue* arr = nullptr;
     if (item->GetAsList(&arr)) {
       for (auto it = arr->begin(); it != arr->end(); ++it) {
-        std::string val = core::ConvertToHumanReadable(*it);
+        std::string val = core::ConvertValue(*it, DEFAULT_DELIMITER);
         if (val.empty()) {
           continue;
         }
@@ -266,7 +266,7 @@ void DbKeyDialog::syncControls(common::Value* item) {
     common::SetValue* set = nullptr;
     if (item->GetAsSet(&set)) {
       for (auto it = set->begin(); it != set->end(); ++it) {
-        std::string val = core::ConvertToHumanReadable(*it);
+        std::string val = core::ConvertValue(*it, DEFAULT_DELIMITER);
         if (val.empty()) {
           continue;
         }
@@ -283,13 +283,13 @@ void DbKeyDialog::syncControls(common::Value* item) {
       for (auto it = zset->begin(); it != zset->end(); ++it) {
         auto element = (*it);
         common::Value* key = element.first;
-        std::string key_str = core::ConvertToHumanReadable(key);
+        std::string key_str = core::ConvertValue(key, DEFAULT_DELIMITER);
         if (key_str.empty()) {
           continue;
         }
 
         common::Value* value = element.second;
-        std::string value_str = core::ConvertToHumanReadable(value);
+        std::string value_str = core::ConvertValue(value, DEFAULT_DELIMITER);
         if (value_str.empty()) {
           continue;
         }
@@ -307,13 +307,13 @@ void DbKeyDialog::syncControls(common::Value* item) {
       for (auto it = hash->begin(); it != hash->end(); ++it) {
         auto element = (*it);
         common::Value* key = element.first;
-        std::string key_str = core::ConvertToHumanReadable(key);
+        std::string key_str = core::ConvertValue(key, DEFAULT_DELIMITER);
         if (key_str.empty()) {
           continue;
         }
 
         common::Value* value = element.second;
-        std::string value_str = core::ConvertToHumanReadable(value);
+        std::string value_str = core::ConvertValue(value, DEFAULT_DELIMITER);
         if (value_str.empty()) {
           continue;
         }

@@ -351,11 +351,12 @@ common::Error DBConnection::DelInner(const key_t& key) {
   return CheckResultCommand(DB_DELETE_KEY_COMMAND, connection_.handle_->Delete(wo, key_slice));
 }
 
-common::Error DBConnection::SetInner(const key_t& key, const std::string& value) {
+common::Error DBConnection::SetInner(const key_t& key, const value_t& value) {
   const readable_string_t key_str = key.GetData();
+  const readable_string_t value_str = value.GetData();
   const ::leveldb::Slice key_slice(reinterpret_cast<const char*>(key_str.data()), key_str.size());
   ::leveldb::WriteOptions wo;
-  return CheckResultCommand(DB_SET_KEY_COMMAND, connection_.handle_->Put(wo, key_slice, value));
+  return CheckResultCommand(DB_SET_KEY_COMMAND, connection_.handle_->Put(wo, key_slice, value_str));
 }
 
 common::Error DBConnection::GetInner(const key_t& key, std::string* ret_val) {
@@ -497,9 +498,10 @@ common::Error DBConnection::DeleteImpl(const NKeys& keys, NKeys* deleted_keys) {
 }
 
 common::Error DBConnection::SetImpl(const NDbKValue& key, NDbKValue* added_key) {
-  const NKey cur = key.GetKey();
+  NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetHumanReadableValue();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   common::Error err = SetInner(key_str, value_str);
   if (err) {
     return err;
