@@ -30,11 +30,12 @@
 namespace fastonosql {
 namespace core {
 namespace {
-ups_key_t ConvertToUpscaleDBSlice(const string_key_t& key) {
+ups_key_t ConvertToUpscaleDBSlice(const key_t& key) {
+  readable_string_t key_str = key.GetData();
   ups_key_t dkey;
   memset(&dkey, 0, sizeof(dkey));
-  dkey.size = key.size();
-  dkey.data = const_cast<command_buffer_char_t*>(key.data());
+  dkey.size = key_str.size();
+  dkey.data = const_cast<command_buffer_char_t*>(key_str.data());
   return dkey;
 }
 }  // namespace
@@ -382,21 +383,20 @@ common::Error DBConnection::Info(const std::string& args, ServerInfo::Stats* sta
   return common::Error();
 }
 
-common::Error DBConnection::SetInner(key_t key, const std::string& value) {
-  const string_key_t key_str = key.GetKeyData();
-  ups_key_t key_slice = ConvertToUpscaleDBSlice(key_str);
+common::Error DBConnection::SetInner(const key_t& key, const value_t& value) {
+  ups_key_t key_slice = ConvertToUpscaleDBSlice(key);
+  readable_string_t value_str = value.GetData();
 
   ups_record_t rec;
   memset(&rec, 0, sizeof(rec));
-  rec.data = const_cast<char*>(value.c_str());
-  rec.size = value.size();
+  rec.data = const_cast<char*>(value_str.data());
+  rec.size = value_str.size();
   return CheckResultCommand(DB_SET_KEY_COMMAND,
                             ups_db_insert(connection_.handle_->db, 0, &key_slice, &rec, UPS_OVERWRITE));
 }
 
-common::Error DBConnection::GetInner(key_t key, std::string* ret_val) {
-  const string_key_t key_str = key.GetKeyData();
-  ups_key_t key_slice = ConvertToUpscaleDBSlice(key_str);
+common::Error DBConnection::GetInner(const key_t& key, std::string* ret_val) {
+  ups_key_t key_slice = ConvertToUpscaleDBSlice(key);
 
   ups_record_t rec;
   memset(&rec, 0, sizeof(rec));
@@ -411,9 +411,8 @@ common::Error DBConnection::GetInner(key_t key, std::string* ret_val) {
   return common::Error();
 }
 
-common::Error DBConnection::DelInner(key_t key) {
-  const string_key_t key_str = key.GetKeyData();
-  ups_key_t key_slice = ConvertToUpscaleDBSlice(key_str);
+common::Error DBConnection::DelInner(const key_t& key) {
+  ups_key_t key_slice = ConvertToUpscaleDBSlice(key);
   return CheckResultCommand(DB_DELETE_KEY_COMMAND, ups_db_erase(connection_.handle_->db, 0, &key_slice, 0));
 }
 
@@ -570,9 +569,10 @@ common::Error DBConnection::SelectImpl(const std::string& name, IDataBaseInfo** 
 }
 
 common::Error DBConnection::SetImpl(const NDbKValue& key, NDbKValue* added_key) {
-  const NKey cur = key.GetKey();
+  NKey cur = key.GetKey();
   key_t key_str = cur.GetKey();
-  std::string value_str = key.GetValueString();
+  NValue value = key.GetValue();
+  value_t value_str = value.GetValue();
   common::Error err = SetInner(key_str, value_str);
   if (err) {
     return err;
@@ -610,7 +610,7 @@ common::Error DBConnection::DeleteImpl(const NKeys& keys, NKeys* deleted_keys) {
   return common::Error();
 }
 
-common::Error DBConnection::RenameImpl(const NKey& key, string_key_t new_key) {
+common::Error DBConnection::RenameImpl(const NKey& key, const key_t& new_key) {
   key_t key_str = key.GetKey();
   std::string value_str;
   common::Error err = GetInner(key_str, &value_str);
@@ -623,7 +623,7 @@ common::Error DBConnection::RenameImpl(const NKey& key, string_key_t new_key) {
     return err;
   }
 
-  err = SetInner(key_t(new_key), value_str);
+  err = SetInner(new_key, value_str);
   if (err) {
     return err;
   }
