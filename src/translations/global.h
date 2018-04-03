@@ -114,6 +114,7 @@ extern const QString trCsv;
 extern const QString trFolder;
 extern const QString trLoggingEnabled;
 extern const QString trHex;
+extern const QString trUnicode;
 extern const QString trMsgPack;
 extern const QString trGzip;
 extern const QString trLZ4;

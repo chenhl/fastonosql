@@ -45,16 +45,17 @@ FastoTextView::FastoTextView(QWidget* parent) : QWidget(parent) {
   editor_ = new FastoEditorOutput;
   views_label_ = new QLabel;
   views_combo_box_ = new QComboBox;
-  views_combo_box_->addItem(translations::trJson, JSON);
-  views_combo_box_->addItem(translations::trCsv, CSV);
-  views_combo_box_->addItem(translations::trRawText, RAW);
-  views_combo_box_->addItem(translations::trHex, HEX);
-  views_combo_box_->addItem(translations::trMsgPack, MSGPACK);
-  views_combo_box_->addItem(translations::trGzip, GZIP);
-  views_combo_box_->addItem(translations::trLZ4, LZ4);
-  views_combo_box_->addItem(translations::trBZip2, BZIP2);
-  views_combo_box_->addItem(translations::trSnappy, SNAPPY);
-  views_combo_box_->addItem(translations::trXml, XML);
+  views_combo_box_->addItem(translations::trJson, JSON_VIEW);
+  views_combo_box_->addItem(translations::trCsv, CSV_VIEW);
+  views_combo_box_->addItem(translations::trRawText, RAW_VIEW);
+  views_combo_box_->addItem(translations::trHex, HEX_VIEW);
+  views_combo_box_->addItem(translations::trUnicode, UNICODE_VIEW);
+  views_combo_box_->addItem(translations::trMsgPack, MSGPACK_VIEW);
+  views_combo_box_->addItem(translations::trGzip, GZIP_VIEW);
+  views_combo_box_->addItem(translations::trLZ4, LZ4_VIEW);
+  views_combo_box_->addItem(translations::trBZip2, BZIP2_VIEW);
+  views_combo_box_->addItem(translations::trSnappy, SNAPPY_VIEW);
+  views_combo_box_->addItem(translations::trXml, XML_VIEW);
 
   save_change_button_ = new QPushButton;
   save_change_button_->setIcon(GuiFactory::GetInstance().GetSaveIcon());
@@ -79,7 +80,7 @@ FastoTextView::FastoTextView(QWidget* parent) : QWidget(parent) {
 
   mainL->addLayout(hlayout);
   setLayout(mainL);
-  views_combo_box_->setCurrentIndex(RAW);
+  views_combo_box_->setCurrentIndex(RAW_VIEW);
   retranslateUi();
 }
 

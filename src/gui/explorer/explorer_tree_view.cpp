@@ -855,7 +855,7 @@ void ExplorerTreeView::renKey() {
     reg_dialog.setWindowTitle(trRenameKey);
     reg_dialog.setLabelText(trRenameKeyLabel);
     reg_dialog.setText(name);
-    QRegExp regExp("\\S+");
+    QRegExp regExp(".*");
     reg_dialog.setRegExp(regExp);
     int result = reg_dialog.exec();
     if (result != QDialog::Accepted) {

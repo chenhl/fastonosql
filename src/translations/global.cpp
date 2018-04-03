@@ -114,6 +114,7 @@ const QString trCsv = QObject::tr("Csv");
 const QString trFolder = QObject::tr("Folder");
 const QString trLoggingEnabled = QObject::tr("Logging enabled");
 const QString trHex = QObject::tr("Hex");
+const QString trUnicode  = QObject::tr("Unicode");
 const QString trMsgPack = QObject::tr("MsgPack");
 const QString trGzip = QObject::tr("Gzip");
 const QString trLZ4 = QObject::tr("LZ4");

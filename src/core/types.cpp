@@ -167,6 +167,45 @@ std::string string_from_hex(const std::string& value) {
   return string_from_hex_impl(value);
 }
 
+std::string unicode_string(const std::string& value) {
+  std::ostringstream wr;
+  common::string16 s16 = common::ConvertToString16(value);
+  std::string unicoded = common::utils::unicode::encode(s16, true);
+  for (size_t i = 0; i < unicoded.size(); i += 4) {
+    wr << "\\u";
+    wr << unicoded[i];
+    wr << unicoded[i + 1];
+    wr << unicoded[i + 2];
+    wr << unicoded[i + 3];
+  }
+
+  return wr.str();
+}
+
+std::string string_from_unicode(const std::string& value) {
+  size_t len = value.size();
+  if (len % 6 != 0) {
+    return std::string();
+  }
+
+  std::string unicode_digits;
+  for (size_t i = 0; i < len; i += 6) {
+    auto c1 = value[i];
+    auto c2 = value[i + 1];
+    if (c1 == '\\' && c2 == 'u') {
+      unicode_digits += value[i + 2];
+      unicode_digits += value[i + 3];
+      unicode_digits += value[i + 4];
+      unicode_digits += value[i + 5];
+    } else {
+      return std::string();
+    }
+  }
+
+  common::string16 s16  = common::utils::unicode::decode(unicode_digits);
+  return common::ConvertToString(s16);
+}
+
 bool have_space(const std::string& data) {
   auto it = std::find_if(data.begin(), data.end(), [](char c) { return std::isspace(c); });
   return it != data.end();

@@ -40,6 +40,9 @@ std::string hex_string(const std::string& value);
 bool have_space(const std::string& data);
 std::string string_from_hex(const std::string& value);
 bool is_json(const std::string& data);
+
+std::string unicode_string(const std::string& value);
+std::string string_from_unicode(const std::string& value);
 }  // namespace detail
 
 class ReadableString {

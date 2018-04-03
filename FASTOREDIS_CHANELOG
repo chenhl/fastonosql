@@ -1,6 +1,7 @@
 1.16.2 /
 [Alexandr Topilski]
 - JSONDUMP command for all databases
+- Unicode view
 
 1.16.1 / March 28, 2018
 [Alexandr Topilski]

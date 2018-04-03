@@ -20,16 +20,17 @@
 
 #include "gui/editor/fasto_editor.h"
 
-#define JSON 0
-#define CSV 1
-#define RAW 2
-#define HEX 3
-#define MSGPACK 4
-#define GZIP 5
-#define LZ4 6
-#define BZIP2 7
-#define SNAPPY 8
-#define XML 9
+#define JSON_VIEW 0
+#define CSV_VIEW 1
+#define RAW_VIEW 2
+#define HEX_VIEW 3
+#define UNICODE_VIEW 4
+#define MSGPACK_VIEW 5
+#define GZIP_VIEW 6
+#define LZ4_VIEW 7
+#define BZIP2_VIEW 8
+#define SNAPPY_VIEW 9
+#define XML_VIEW 10
 
 namespace fastonosql {
 namespace gui {

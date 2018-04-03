@@ -35,7 +35,7 @@
 namespace fastonosql {
 namespace gui {
 
-FastoEditorOutput::FastoEditorOutput(QWidget* parent) : QWidget(parent), model_(nullptr), view_method_(JSON) {
+FastoEditorOutput::FastoEditorOutput(QWidget* parent) : QWidget(parent), model_(nullptr), view_method_(JSON_VIEW) {
   text_json_editor_ = new FastoEditor;
   json_lexer_ = new QsciLexerJSON;
   xml_lexer_ = new QsciLexerXML;
@@ -55,9 +55,9 @@ FastoEditorOutput::~FastoEditorOutput() {
 }
 
 void FastoEditorOutput::SyncEditors() {
-  if (view_method_ == JSON) {
+  if (view_method_ == JSON_VIEW) {
     text_json_editor_->setLexer(json_lexer_);
-  } else if (view_method_ == XML) {
+  } else if (view_method_ == XML_VIEW) {
     text_json_editor_->setLexer(xml_lexer_);
   } else {
     text_json_editor_->setLexer(NULL);
@@ -197,7 +197,7 @@ int FastoEditorOutput::viewMethod() const {
 
 QString FastoEditorOutput::text() const {
   QString val = text_json_editor_->text();
-  if (view_method_ == HEX) {
+  if (view_method_ == HEX_VIEW) {
     std::string val_str = common::ConvertToString(val);
     std::string raw = core::detail::string_from_hex(val_str);
     QString qraw;
@@ -243,25 +243,27 @@ void FastoEditorOutput::layoutChanged() {
   }
 
   QString methodText;
-  if (view_method_ == JSON) {
+  if (view_method_ == JSON_VIEW) {
     methodText = translations::trJson;
-  } else if (view_method_ == CSV) {
+  } else if (view_method_ == CSV_VIEW) {
     methodText = translations::trCsv;
-  } else if (view_method_ == RAW) {
+  } else if (view_method_ == RAW_VIEW) {
     methodText = translations::trRawText;
-  } else if (view_method_ == HEX) {
+  } else if (view_method_ == HEX_VIEW) {
     methodText = translations::trHex;
-  } else if (view_method_ == MSGPACK) {
+  } else if (view_method_ == UNICODE_VIEW) {
+    methodText = translations::trUnicode;
+  } else if (view_method_ == MSGPACK_VIEW) {
     methodText = translations::trMsgPack;
-  } else if (view_method_ == GZIP) {
+  } else if (view_method_ == GZIP_VIEW) {
     methodText = translations::trGzip;
-  } else if (view_method_ == LZ4) {
+  } else if (view_method_ == LZ4_VIEW) {
     methodText = translations::trLZ4;
-  } else if (view_method_ == BZIP2) {
+  } else if (view_method_ == BZIP2_VIEW) {
     methodText = translations::trBZip2;
-  } else if (view_method_ == SNAPPY) {
+  } else if (view_method_ == SNAPPY_VIEW) {
     methodText = translations::trSnappy;
-  } else if (view_method_ == XML) {
+  } else if (view_method_ == XML_VIEW) {
     methodText = translations::trXml;
   } else {
     NOTREACHED();
@@ -275,38 +277,45 @@ void FastoEditorOutput::layoutChanged() {
       continue;
     }
 
-    if (view_method_ == JSON) {
+    if (view_method_ == JSON_VIEW) {
       QString json = toJson(child);
       result += common::EscapedText(json);
-    } else if (view_method_ == CSV) {
+    } else if (view_method_ == CSV_VIEW) {
       QString csv = toCsv(child);
       result += common::EscapedText(csv);
-    } else if (view_method_ == RAW) {
+    } else if (view_method_ == RAW_VIEW) {
       QString raw = toRaw(child);
       result += common::EscapedText(raw);
-    } else if (view_method_ == HEX) {
+    } else if (view_method_ == HEX_VIEW) {
       QString raw = toRaw(child);
       std::string str_raw = common::ConvertToString(raw);
       std::string hexed = core::detail::hex_string(str_raw);
       QString qhexed;
       common::ConvertFromString(hexed, &qhexed);
       result += qhexed;
-    } else if (view_method_ == MSGPACK) {
+    } else if (view_method_ == UNICODE_VIEW) {
+      QString raw = toRaw(child);
+      std::string str_raw = common::ConvertToString(raw);
+      std::string unicoded = core::detail::unicode_string(str_raw);
+      QString qunicoded;
+      common::ConvertFromString(unicoded, &qunicoded);
+      result += qunicoded;
+    } else if (view_method_ == MSGPACK_VIEW) {
       QString msgp = fromHexMsgPack(child);
       result += common::EscapedText(msgp);
-    } else if (view_method_ == GZIP) {
+    } else if (view_method_ == GZIP_VIEW) {
       QString gzip = fromGzip(child);
       result += common::EscapedText(gzip);
-    } else if (view_method_ == LZ4) {
+    } else if (view_method_ == LZ4_VIEW) {
       QString lz4 = fromLZ4(child);
       result += common::EscapedText(lz4);
-    } else if (view_method_ == BZIP2) {
+    } else if (view_method_ == BZIP2_VIEW) {
       QString bzip2 = fromBZip2(child);
       result += common::EscapedText(bzip2);
-    } else if (view_method_ == SNAPPY) {
+    } else if (view_method_ == SNAPPY_VIEW) {
       QString snap = fromSnappy(child);
       result += common::EscapedText(snap);
-    } else if (view_method_ == XML) {
+    } else if (view_method_ == XML_VIEW) {
       QString raw = toRaw(child);
       result += common::EscapedText(raw);
     }
