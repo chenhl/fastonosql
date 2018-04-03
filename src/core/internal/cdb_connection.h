@@ -30,25 +30,8 @@
 
 namespace fastonosql {
 namespace core {
-namespace {
-readable_string_t StableForJson(const ReadableString& data) {
-  readable_string_t data_raw = data.GetData();
-  if (data_raw.empty()) {
-    DNOTREACHED();
-    return "\"" + data_raw + "\"";
-  }
-
-  ReadableString::DataType type = data.GetType();
-  if (type == ReadableString::BINARY_DATA) {
-    return "\"" + detail::hex_string(data_raw) + "\"";
-  }
-
-  if (detail::is_json(data_raw)) {
-    return data_raw;
-  }
-
-  return "\"" + data_raw + "\"";
-}
+namespace detail{
+readable_string_t StableForJson(const ReadableString& data);
 }  // namespace
 namespace internal {
 
@@ -710,8 +693,8 @@ common::Error CDBConnection<NConnection, Config, ContType>::JsonDumpImpl(
 
     NValue value = loaded_key.GetValue();
     value_t value_str = value.GetValue();
-    readable_string_t stabled_key = StableForJson(key_str);
-    readable_string_t stabled_value = StableForJson(value_str);
+    readable_string_t stabled_key = detail::StableForJson(key_str);
+    readable_string_t stabled_value = detail::StableForJson(value_str);
     if (i == keys.size() - 1) {
       is_wrote = fl.WriteFormated("%s:%s\n", stabled_key, stabled_value);
     } else {

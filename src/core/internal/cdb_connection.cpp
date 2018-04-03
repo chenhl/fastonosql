@@ -23,6 +23,27 @@
 namespace fastonosql {
 namespace core {
 
+namespace detail {
+readable_string_t StableForJson(const ReadableString& data) {
+  readable_string_t data_raw = data.GetData();
+  if (data_raw.empty()) {
+    DNOTREACHED();
+    return "\"" + data_raw + "\"";
+  }
+
+  ReadableString::DataType type = data.GetType();
+  if (type == ReadableString::BINARY_DATA) {
+    return "\"" + detail::hex_string(data_raw) + "\"";
+  }
+
+  if (detail::is_json(data_raw)) {
+    return data_raw;
+  }
+
+  return "\"" + data_raw + "\"";
+}
+}  // namespace detail
+
 CDBConnectionClient::~CDBConnectionClient() {}
 
 namespace internal {
