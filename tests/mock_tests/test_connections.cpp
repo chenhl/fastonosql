@@ -2,12 +2,24 @@
 
 #include <common/file_system/file_system.h>
 
+#ifdef BUILD_WITH_FORESTDB
 #include "core/db/forestdb/db_connection.h"
+#endif
+#ifdef BUILD_WITH_LEVELDB
 #include "core/db/leveldb/db_connection.h"
+#endif
+#ifdef BUILD_WITH_LMDB
 #include "core/db/lmdb/db_connection.h"
+#endif
+#ifdef BUILD_WITH_ROCKSDB
 #include "core/db/rocksdb/db_connection.h"
+#endif
+#ifdef BUILD_WITH_UNQLITE
 #include "core/db/unqlite/db_connection.h"
+#endif
+#ifdef BUILD_WITH_UPSCALEDB
 #include "core/db/upscaledb/db_connection.h"
+#endif
 
 using namespace fastonosql;
 
