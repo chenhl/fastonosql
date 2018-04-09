@@ -265,7 +265,6 @@ int main(int argc, char* argv[]) {
   }
 
   fastonosql::proxy::UserInfo::SubscriptionState user_sub_state = user_info.GetSubscriptionState();
-  // if trial
   if (user_sub_state != fastonosql::proxy::UserInfo::SUBSCRIBED) {
     size_t exec_count = user_info.GetExecCount();
     fastonosql::proxy::user_id_t user_id = user_info.GetUserID();

@@ -93,7 +93,7 @@ class BuildRequest(object):
     def build_openssl(self, prefix_path):
         abs_dir_path = self.build_dir_path_
         try:
-            openssl_default_version = '1.1.0g'
+            openssl_default_version = '1.1.0h'
             compiler_flags = utils.CompileInfo([], ['no-shared'])
             url = '{0}openssl-{1}.{2}'.format(OPENSSL_SRC_ROOT, openssl_default_version, ARCH_OPENSSL_EXT)
             utils.build_from_sources(url, compiler_flags, g_script_path, prefix_path, './config')
@@ -127,19 +127,24 @@ class BuildRequest(object):
             os.chdir(abs_dir_path)
             raise ex
 
-    def build_jsonc(self, cmake_line, make_install):
+    def build_jsonc(self, prefix_path):
         abs_dir_path = self.build_dir_path_
         try:
             cloned_dir = utils.git_clone('https://github.com/fastogt/json-c.git', abs_dir_path)
             os.chdir(cloned_dir)
 
-            os.mkdir('build_cmake_release')
-            os.chdir('build_cmake_release')
-            common_cmake_line = list(cmake_line)
-            cmake_policy = run_command.CmakePolicy(print_message)
+            autogen_policy = run_command.CommonPolicy(print_message)
+            autogen_jsonc = ['sh', 'autogen.sh']
+            run_command.run_command_cb(autogen_jsonc, autogen_policy)
+
+            configure_jsonc = ['./configure', '--prefix={0}'.format(prefix_path), '--disable-shared',
+                               '--enable-static']
+            configure_policy = run_command.CommonPolicy(print_message)
+            run_command.run_command_cb(configure_jsonc, configure_policy)
+
+            make_jsonc = ['make', 'install']  # FIXME
             make_policy = run_command.CommonPolicy(print_message)
-            run_command.run_command_cb(common_cmake_line, cmake_policy)
-            run_command.run_command_cb(make_install, make_policy)
+            run_command.run_command_cb(make_jsonc, make_policy)
             os.chdir(abs_dir_path)
         except Exception as ex:
             os.chdir(abs_dir_path)
@@ -337,7 +342,7 @@ class BuildRequest(object):
         self.build_snappy(cmake_line, make_install)
         self.build_openssl(prefix_path)
         self.build_libssh2(cmake_line, prefix_path, make_install)
-        self.build_jsonc(cmake_line, make_install)
+        self.build_jsonc(prefix_path)
         self.build_qscintilla(cmake_line, make_install)
         self.build_common(cmake_line, make_install)
 
